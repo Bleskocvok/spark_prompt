@@ -6,6 +6,10 @@ make
 sudo cp ./spark /usr/local/bin/spark
 
 
+# remove old first
+sed -i '/# spark start/,/# spark end/d' ~/.bashrc
+
+# install new entry in bashrc
 echo '
 # spark start
 
