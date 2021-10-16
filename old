@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+
+
+
+# PS1='\[\033[01;32m\]\u\[\033[02;37m\]@\h\[\033[00m\]:\[\033[01;34m\]`shorten \w`\[\033[00m\]\$ '
+
+
+
+# ---------------------------------------------------------------------- #
+#                          FRANTISEK PROMPT
+# ---------------------------------------------------------------------- #
+
+
+function shorten()
+{
+    dir="$1"
+    hom=$(echo "$HOME" | sed -e 's$/$\\/$g')
+    dir=$(echo "$dir" | sed "s/$hom/~/")
+    if [ ${#dir} -gt 40 ]; then
+        echo …`echo ${dir:$((${#dir} - 40)):${#dir}}`
+    else
+        echo $dir
+    fi
+}
+
+function retval_color()
+{
+    ret="$1"
+    if [ "$ret" -eq 0 ];
+    then
+        echo -e "\033[01;32m"
+    else
+        echo -e "\033[01;31m"
+    fi
+}
+
+function retval()
+{
+    ret="$1"
+    if [ "$ret" -eq 0 ];
+    then
+        echo "✓"
+    else
+        echo "✖"
+    fi
+}
+
+function pp_host()
+{
+    name="$1"
+    case "$name" in
+        *big-pc)
+            echo -e "\033[02;37m"
+        ;;
+        *big-pc-vindous)
+            echo -e "\033[02;37m"
+        ;;
+        *aisa|*nymfe*)
+            echo -e "\033[1;96m"
+        ;;
+        *thunderframe)
+            echo -e "\033[1;33m"
+        ;;
+        *)
+            echo -e "\033[00m"
+        ;;
+    esac
+}
+
+function export_retval()
+{
+    ret="$?"
+    export RET_COLOR=$(retval_color $ret)
+    export RET_SYMBOL=$(retval $ret)
+}
+
+export PROMPT_COMMAND='export_retval'
+export PS1="\[\$RET_COLOR\]\$RET_SYMBOL "'\[\033[01;32m\]\u\[\033[02;37m\]\[$(pp_host \h)\]@\h\[\033[00m\]:\[\033[01;34m\]$(shorten \w)\[\033[00m\]\$ '
+
+# ---------------------------------------------------------------------- #
+
+
+
+
+

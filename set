@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+
+function _update_prompt()
+{
+    PS1=$(./prompt $?)
+}
+
+export PROMPT_COMMAND="_update_prompt"
+
