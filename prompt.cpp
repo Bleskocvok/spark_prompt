@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <variant>
+#include <algorithm>    // find_if
 
 // POSIX includes
 #include <unistd.h>     // posix, geteuid, gethostname, getcwd
@@ -132,7 +133,7 @@ struct segment
 std::string exit_symbol(int val)
 {
     if (val == 0)
-        return "✓";
+        return "✔";
 
     return "🞮";
 }
@@ -176,8 +177,8 @@ std::string path()
 
     if (result.starts_with(home))
     {
-        result.erase(0, home.size());
-        result.insert(0, "~");
+        result.erase(1, home.size() - 1);
+        result.front() = '~';
     }
 
     // cool arrow, but kinda wide
@@ -191,43 +192,30 @@ std::string path()
 }
 
 
-int main(int argc, char** argv)
+struct configuration
 {
-    int ret = 0;
-
-    if (argc >= 2)
+    enum
     {
-        ret = std::atoi(argv[1]);
-    }
+        powerline,
+        pseudo_powerline,
+        normal,
+    } style = normal;
 
-    // auto segments = std::vector<segment>
-    // {
-    //     { .str = exit_symbol(ret), .fg = exit_color(ret) },
-    //     { .str = " " },
-    //     { .str = username(), .fg = bit3::green },
-    //     { .str = hostname(), .fg = bit3::white },
-    //     { .str = path(), .fg = bit3::blue },
-    //     { .str = "$ " },
-    // };
+    bool double_line = false;
 
-    // for (size_t i = 0; i < segments.size(); i++)
-    // {
-    //     std::cout << fg_color_str(segments[i].fg) << segments[i].str;
-    // }
-
-
-    // magenta: rgb{ 50, 64, 168 }
-
-
-    // powerline
-    auto segments = std::vector<segment>
+    struct host_theme
     {
-        { .str = exit_symbol(ret), .fg = bit3::white, .bg = exit_color(ret) },
-        { .str = username(), .fg = bit3::white, .bg = rgb{ 5, 82, 158 } },
-        { .str = hostname(), .fg = bit3::white, .bg = rgb{ 107, 105, 97 } },
-        { .str = path(),     .fg = bit3::white, .bg = rgb{ 5, 82, 158 } },
+        std::string contains;
+        color fg = bit3::white,
+              bg = bit3::reset;
     };
 
+    std::vector<host_theme> host_themes;
+};
+
+
+void print_powerline(const std::vector<segment>& segments)
+{
     static const std::string arrow = "\uE0B0"s;
 
     for (size_t i = 0; i < segments.size(); i++)
@@ -245,8 +233,129 @@ int main(int argc, char** argv)
                   << fg_color_str(segments[i].bg)
                   << arrow;
     }
+}
+
+
+void print_pseudo_powerline(const std::vector<segment>& segments)
+{
+    for (size_t i = 0; i < segments.size(); i++)
+    {
+        std::cout << bg_color_str(segments[i].bg)
+                  << fg_color_str(segments[i].fg)
+                  << " "
+                  << segments[i].str
+                  << " ";
+    }
+}
+
+
+void print_normal(const std::vector<segment>& segments)
+{
+    for (size_t i = 0; i < segments.size(); i++)
+    {
+        std::cout << bg_color_str(segments[i].bg)
+                  << fg_color_str(segments[i].fg)
+                  << segments[i].str;
+    }
+}
+
+
+int main(int argc, char** argv)
+{
+    int ret = 0;
+
+    if (argc >= 2)
+    {
+        ret = std::atoi(argv[1]);
+    }
+
+    configuration config;
+    config.style = configuration::powerline;
+    config.double_line = false;
+
+    config.host_themes.push_back({ "laptop",
+                                   bit3::white,
+                                   rgb{ 92, 7, 120 } });
+    config.host_themes.push_back({ "vindous",
+                                   bit3::white,
+                                   rgb{ 150, 66, 20 } });
+    config.host_themes.push_back({ "aisa",
+                                   bit3::white,
+                                   rgb{ 20, 150, 141 } });
+    config.host_themes.push_back({ "nymfe",
+                                   bit3::white,
+                                   rgb{ 20, 150, 141 } });
+    config.host_themes.push_back({ "big-pc",
+                                   bit3::white,
+                                   rgb{ 107, 105, 97 } });
+    config.host_themes.push_back({ "thunderframe",
+                                   bit3::black,
+                                   rgb{ 235, 175, 35 } });
+
+    // nice red: 128, 23, 9
+    // normal gray: 107, 105, 97
+
+    auto host = hostname();
+    auto contains = [&](const auto& theme)
+    {
+        return host.find(theme.contains) != host.npos;
+    };
+    auto found = std::find_if(config.host_themes.begin(),
+                              config.host_themes.end(),
+                              contains);
+    auto theme = configuration::host_theme{};
+    if (found != config.host_themes.end())
+        theme = *found;
+
+    // powerline
+    auto segments = std::vector<segment>
+    {
+        { .str = exit_symbol(ret), .fg = bit3::white, .bg = exit_color(ret) },
+        { .str = username(), .fg = bit3::white, .bg = rgb{ 5, 82, 158 } },
+        { .str = hostname(), .fg = theme.fg, .bg = theme.bg },
+        { .str = path(),     .fg = bit3::white, .bg = rgb{ 5, 82, 158 } },
+    };
+
+    switch (config.style)
+    {
+        case configuration::powerline:
+            print_powerline(segments);
+            break;
+
+        case configuration::pseudo_powerline:
+            print_pseudo_powerline(segments);
+            break;
+        
+        default:
+            print_normal(segments);
+            break;
+    }
+
+    if (config.double_line)
+    {
+        std::cout << fg_color_str(bit3::white) << "\n❯ $";
+    }
 
     std::cout << fg_color_str(bit3::reset) << " \n";
 
     return 0;
 }
+
+
+// auto segments = std::vector<segment>
+    // {
+    //     { .str = exit_symbol(ret), .fg = exit_color(ret) },
+    //     { .str = " " },
+    //     { .str = username(), .fg = bit3::green },
+    //     { .str = hostname(), .fg = bit3::white },
+    //     { .str = path(), .fg = bit3::blue },
+    //     { .str = "$ " },
+    // };
+
+    // for (size_t i = 0; i < segments.size(); i++)
+    // {
+    //     std::cout << fg_color_str(segments[i].fg) << segments[i].str;
+    // }
+
+
+    // magenta: rgb{ 50, 64, 168 }
