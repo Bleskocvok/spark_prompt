@@ -3,7 +3,7 @@
 
 function _update_prompt()
 {
-    PS1=$(./prompt $?)
+    PS1=$(./spark $?)
 }
 
 export PROMPT_COMMAND="_update_prompt"

@@ -1,3 +1,21 @@
 #!/usr/bin/env bash
 
-sudo cp ./prompt /usr/local/bin/prompt
+
+make
+
+sudo cp ./spark /usr/local/bin/spark
+
+
+echo '
+# spark start
+
+function _update_spark_prompt()
+{
+    PS1=$(spark $?)
+}
+
+export PROMPT_COMMAND="_update_spark_prompt"
+
+# spark end
+' >> ~/.bashrc
+

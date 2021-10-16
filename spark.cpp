@@ -294,6 +294,7 @@ int main(int argc, char** argv)
 
     // nice red: 128, 23, 9
     // normal gray: 107, 105, 97
+    // magenta: rgb{ 50, 64, 168 }
 
     auto host = hostname();
     auto contains = [&](const auto& theme)
@@ -340,22 +341,3 @@ int main(int argc, char** argv)
 
     return 0;
 }
-
-
-// auto segments = std::vector<segment>
-    // {
-    //     { .str = exit_symbol(ret), .fg = exit_color(ret) },
-    //     { .str = " " },
-    //     { .str = username(), .fg = bit3::green },
-    //     { .str = hostname(), .fg = bit3::white },
-    //     { .str = path(), .fg = bit3::blue },
-    //     { .str = "$ " },
-    // };
-
-    // for (size_t i = 0; i < segments.size(); i++)
-    // {
-    //     std::cout << fg_color_str(segments[i].fg) << segments[i].str;
-    // }
-
-
-    // magenta: rgb{ 50, 64, 168 }

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+
+sudo rm /usr/local/bin/spark
+
+
+sed -i '/# spark start/,/# spark end/d' ~/.bashrc
+
