@@ -135,9 +135,9 @@ struct segment
 std::string exit_symbol(int val)
 {
     if (val == 0)
-        return "✔";
+        return "✓";
 
-    return "🞮";
+    return "×";
 }
 
 
