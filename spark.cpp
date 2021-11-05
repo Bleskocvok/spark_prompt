@@ -190,6 +190,14 @@ std::string path()
     //     result += ch == '/' ? " ❯ "s : std::string(1, ch);
     // }
 
+    static const size_t max_size = 35;
+
+    if (result.size() > max_size)
+    {
+        result.erase(0, result.size() - max_size);
+        result.insert(0, "…");
+    }
+
     return result;
 }
 
