@@ -33,12 +33,25 @@ using namespace std::literals;
 using namespace std::string_literals;
 
 
+enum class sep
+{
+    empty,
+    space,
+    powerline,
+    powerline_lite,
+    powerline_space,
+    powerline_pseudo,
+};
+
+
 struct segment
 {
     std::string str;
 
     color fg = bit3::white,
           bg = bit3::reset;
+
+    sep end = sep::empty;
 };
 
 

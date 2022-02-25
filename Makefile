@@ -1,23 +1,30 @@
 
 CC = $(CXX)
-CXXFLAGS += -std=c++2a -pedantic -Wall -Wextra
+CXXFLAGS ?= -std=c++2a -pedantic -Wall -Wextra -O2
 
 TARGET = spark
-SRC = spark.cpp
-OBJ = $(SRC:.cpp=.o)
+SRC = src/spark.cpp
+OBJ = $(patsubst src/%.cpp,%.o,$(SRC))
+DEPEND = $(OBJ:.o=.d)
 
 
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
 
-DEPEND = *.d
+%.o: src/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
 
 %.o: CXXFLAGS += -MMD -MP
 
 -include $(DEPEND)
 
-clean:
-	$(RM) $(OBJ) $(DEPEND) $(TARGET)
 
-.PHONY: all clean
+clean:
+	$(RM) $(OBJ) $(DEPEND)
+
+distclean: clean
+	$(RM) $(TARGET)
+
+.PHONY: all clean distclean
