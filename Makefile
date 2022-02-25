@@ -11,7 +11,13 @@ all: $(TARGET)
 
 $(TARGET): $(OBJ)
 
+DEPEND = *.d
+
+%.o: CXXFLAGS += -MMD -MP
+
+-include $(DEPEND)
+
 clean:
-	$(RM) *.o $(TARGET)
+	$(RM) $(OBJ) $(DEPEND) $(TARGET)
 
 .PHONY: all clean
