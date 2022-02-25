@@ -42,7 +42,7 @@ struct rgb
 };
 
 
-std::string wrap_invis(const std::string& str)
+inline std::string wrap_invis(const std::string& str)
 {
     if (!USE_INVIS)
         return str;
@@ -85,31 +85,31 @@ struct converter
 };
 
 
-std::string fg_color_str(color col)
+inline std::string fg_color_str(color col)
 {
     return std::visit(converter{ "1;", "38;2;", 0 }, col);
 }
 
 
-std::string bg_color_str(color col)
+inline std::string bg_color_str(color col)
 {
     return std::visit(converter{ "", "48;2;", 10 }, col);
 }
 
 
-std::string fg_color(bit3 col, const std::string& str)
+inline std::string fg_color(bit3 col, const std::string& str)
 {
     return fg_color_str(col) + str + fg_color_str(bit3::reset);
 }
 
 
-std::string bg_color(bit3 col, const std::string& str)
+inline std::string bg_color(bit3 col, const std::string& str)
 {
     return bg_color_str(col) + str + bg_color_str(bit3::reset);
 }
 
 
-std::optional<std::string> parse_color(std::string_view)
+inline std::optional<std::string> parse_color(std::string_view)
 {
     return std::nullopt;
 }
