@@ -38,7 +38,6 @@ enum class sep
     empty,
     space,
     powerline,
-    powerline_lite,
     powerline_space,
     powerline_pseudo,
 };
@@ -51,7 +50,10 @@ struct segment
     color fg = bit3::white,
           bg = bit3::reset;
 
-    sep end = sep::empty;
+    sep end = sep::powerline;
+
+    bool sp_before = true,
+         sp_after = true;
 };
 
 
@@ -124,52 +126,63 @@ std::string path()
 }
 
 
-void print_powerline(const std::vector<segment>& segments)
+void print_prompt(const std::vector<segment>& segments)
 {
-    static const std::string arrow = "\uE0B0"s;
+    static const auto arrow = "\uE0B0"s;
+    static const auto pseudo = "▶"s;
 
     for (size_t i = 0; i < segments.size(); i++)
     {
         std::cout << bg_color_str(segments[i].bg)
-                  << fg_color_str(segments[i].fg)
-                  << " "
-                  << segments[i].str
-                  << " ";
+                  << fg_color_str(segments[i].fg);
+
+        if (segments[i].sp_before)
+            std::cout << " ";
+        
+        std::cout << segments[i].str;
+
+        if (segments[i].sp_after)
+            std::cout << " ";
 
         color next = i != segments.size() - 1 ? segments[i + 1].bg
                                               : bit3::reset;
 
-        std::cout << bg_color_str(next)
-                  << fg_color_str(segments[i].bg)
-                  << arrow;
+        switch (segments[i].end)
+        {
+            case sep::empty:
+                std::cout << fg_color_str(bit3::reset);
+                break;
+
+            case sep::space:
+                std::cout << fg_color_str(bit3::reset)
+                          << " ";
+                break;
+
+            case sep::powerline:
+                std::cout << bg_color_str(next)
+                          << fg_color_str(segments[i].bg)
+                          << arrow;
+                break;
+
+            case sep::powerline_space:
+            {
+                // TODO: add option to change color of “thick”
+                color thick = rgb{ 0, 0, 0 };
+                std::cout << bg_color_str(thick)
+                          << fg_color_str(segments[i].bg)
+                          << arrow
+                          << fg_color_str(thick)
+                          << bg_color_str(next)
+                          << arrow;
+                break;
+            }
+
+            case sep::powerline_pseudo:
+                std::cout << pseudo;
+                break;
+        }
     }
 }
-
-
-void print_pseudo_powerline(const std::vector<segment>& segments)
-{
-    for (size_t i = 0; i < segments.size(); i++)
-    {
-        std::cout << bg_color_str(segments[i].bg)
-                  << fg_color_str(segments[i].fg)
-                  << " "
-                  << segments[i].str
-                  << " ";
-    }
-}
-
-
-void print_normal(const std::vector<segment>& segments)
-{
-    for (size_t i = 0; i < segments.size(); i++)
-    {
-        std::cout << bg_color_str(segments[i].bg)
-                  << fg_color_str(segments[i].fg)
-                  << segments[i].str;
-    }
-}
-
-
 
 
 int main(int argc, char** argv)
@@ -179,6 +192,11 @@ int main(int argc, char** argv)
     if (argc >= 2)
     {
         ret = std::atoi(argv[1]);
+    }
+
+    if (argc >= 3 && argv[2] == std::string{ "--preview" })
+    {
+        USE_INVIS = false;
     }
 
     configuration config;
@@ -205,26 +223,27 @@ int main(int argc, char** argv)
     // powerline
     auto segments = std::vector<segment>
     {
-        { .str = exit_symbol(ret), .fg = bit3::white, .bg = exit_color(ret) },
-        { .str = username(), .fg = bit3::white, .bg = rgb{ 5, 82, 158 } },
-        { .str = hostname(), .fg = theme.fg, .bg = theme.bg },
-        { .str = path(),     .fg = bit3::white, .bg = rgb{ 5, 82, 158 } },
+        { .str = exit_symbol(ret),
+          .fg = bit3::white,
+          .bg = exit_color(ret),
+          .end = sep::powerline, },
+
+        { .str = username(),
+          .fg = bit3::white,
+          .bg = rgb{ 5, 82, 158 },
+          .end = sep::powerline },
+
+        { .str = hostname(),
+          .fg = theme.fg,
+          .bg = theme.bg,
+          .end = sep::powerline },
+
+        { .str = path(),
+          .fg = bit3::white,
+          .bg = rgb{ 5, 82, 158 } },
     };
 
-    switch (config.style)
-    {
-        case configuration::powerline:
-            print_powerline(segments);
-            break;
-
-        case configuration::pseudo_powerline:
-            print_pseudo_powerline(segments);
-            break;
-        
-        default:
-            print_normal(segments);
-            break;
-    }
+    print_prompt(segments);
 
     if (config.double_line)
     {

@@ -3,11 +3,11 @@
 
 
 ```
-\retval{} |>| \username() |>| @\hostname() |>| \pwd() |>|
+| | \retval{} |>| \username() |>| @\hostname() |>| \pwd() |>|
 
-\retval{} |>| \username() |>| '@' \hostname() |>| \pwd(35) |>|
+| | \retval{} | > | \username() |>| '@' \hostname() |>| \pwd(35) |>|
 
-{yellow} \retval(✓, x, red, yellow) |>|
+| | {yellow} \retval(✓, x, red, yellow) | > |
 
 powerline
 
