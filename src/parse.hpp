@@ -15,6 +15,13 @@ public:
     parsed(std::string_view str) : str(str)
     { }
 
+
+    bool empty() const
+    {
+        return str.empty();
+    }
+
+
     std::string until(char end)
     {
         auto result = std::string{};
@@ -33,17 +40,38 @@ public:
     }
 
 
-    void whitespace()
+    std::string until_one_of(std::string_view options)
     {
-        auto isspace = [&](char ch) -> bool
+        auto result = std::string{};
+
+        while (!str.empty())
         {
-            return std::isspace(static_cast<unsigned char>(ch));
+            char ch = str.front();
+
+            if (options.find(ch) != options.npos)
+                break;
+
+            str.remove_prefix(1);
+            result += ch;
+        }
+        return result;
+    }
+
+
+    bool whitespace()
+    {
+        auto isspace = [&](unsigned char ch) -> bool
+        {
+            return std::isspace(ch);
         };
 
+        bool found = false;
         while (!str.empty() && isspace(str.front()))
         {
+            found = true;
             str.remove_prefix(1);
         }
+        return found;
     }
 
 
@@ -54,9 +82,15 @@ public:
 
         if (str.front() != ch)
             return false;
-        
+
         str.remove_prefix(1);
         return true;
+    }
+
+
+    bool next(char ch) const
+    {
+        return !str.empty() && str.front() == ch;
     }
 
 
