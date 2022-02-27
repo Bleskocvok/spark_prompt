@@ -1,7 +1,3 @@
-
-// TODO: for debugging purposes; remove afterwards!
-#include <iostream>
-
 // custom includes
 #include "style.hpp"
 #include "color.hpp"
@@ -24,9 +20,6 @@
 #include <variant>
 #include <optional>
 #include <algorithm>    // find_if
-
-// // only linux
-// #include <sys/sysinfo.h>
 
 
 using namespace std::literals;
