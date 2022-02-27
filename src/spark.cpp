@@ -113,8 +113,6 @@ int main(int argc, char** argv)
     auto theme = std::string{ env == nullptr ? "" : env };
     parsed pr{ theme.empty() ? theme_def : theme };
 
-    // parsed pr{ "[ ' ' \\exit(✓, ×) ] >> [ {white;5,82,158} \\username() ] :> [ {white;4, 56, 107} '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> " };
-    // parsed pr{ "[ ' ' \\exit(✓, ×) ] >> [ {white;0,91,187} \\username()] :> [ {0,0,0;255,213,0} \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] >>[ {white;0,91,187} ]:>[ {0,0,0;255,213,0} ]:> " };
     auto r = parse_segments(pr, funcs);
 
     if (const auto* err = std::get_if<error>(&r))
