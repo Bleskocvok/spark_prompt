@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 
     static const auto theme_def = std::string_view
     {
-        "[ ' ' \\exit(✓, ×) ] >> [ {white;5,82,158} \\username() ] :> [ {white;4, 56, 107} '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> "
+        "[ ' ' \\exit(✓, ×) ] >> [ {white;5,82,158} \\username() ] :> [ {white;4,56,107} '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> "
     };
 
     auto env = getenv("SPARK_THEME");

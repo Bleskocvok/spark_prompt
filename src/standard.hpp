@@ -68,7 +68,7 @@ class pwd_t : public func
         struct passwd* user_info = getpwuid(geteuid());
         std::string home = user_info->pw_dir;
 
-        if (result.starts_with(home))
+        if (result.substr(0, home.size()) == home)
         {
             result.erase(1, home.size() - 1);
             result.front() = '~';

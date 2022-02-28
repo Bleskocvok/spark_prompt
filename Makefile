@@ -1,6 +1,6 @@
 
 CC = $(CXX)
-CXXFLAGS ?= -std=c++2a -pedantic -Wall -Wextra -O2
+CXXFLAGS ?= -std=c++17 -pedantic -Wall -Wextra -O2
 
 TARGET = spark
 SRC = src/spark.cpp

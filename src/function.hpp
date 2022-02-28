@@ -9,6 +9,7 @@
 #include <variant>
 #include <utility>      // move
 #include <memory>       // unique_ptr
+#include <tuple>        // std::ignore
 
 
 class func
@@ -73,8 +74,9 @@ public:
     template<typename T, typename ... Args>
     bool add(std::string name, Args&& ... args)
     {
-        auto [_, r] = data.emplace(std::move(name),
-                     std::make_unique<T>(std::forward<Args>(args)...));
+        auto r = data.emplace(std::move(name),
+                              std::make_unique<T>(std::forward<Args>(args)...))
+                    .second;
         return r;
     }
 
@@ -83,6 +85,7 @@ public:
     {
         for (auto& [name, elem] : data)
         {
+            std::ignore = name;
             func(*elem);
         }
     }

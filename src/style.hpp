@@ -107,32 +107,36 @@ inline std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
     using namespace std::string_literals;
 
     static const auto alpha = "abcdefghijklmnopqrstuvwxyz"sv;
+    static const char seg_open  = '[';
+    static const char seg_close = ']';
+    static const char fun_open  = '(';
+    static const char fun_close = ')';
 
     segment result{};
 
     pr.whitespace();
 
-    if (!pr.symbol('['))
-        return error{ "expected [" };
+    if (!pr.symbol(seg_open))
+        return error{ "expected "s + seg_open };
 
     pr.whitespace();
 
-    while (!pr.symbol(']'))
+    while (!pr.symbol(seg_close))
     {
         pr.whitespace();
 
         if (pr.empty())
         {
-            return error{ "end reached, but expected ]" };
+            return error{ "end reached, but expected "s + seg_close };
         }
         else if (pr.symbol('\\'))
         {
             auto func = pr.parse(alpha);
             auto args = std::vector<std::string>{};
 
-            if (pr.symbol('('))
+            if (pr.symbol(fun_open))
             {
-                while (!pr.symbol(')') && !pr.empty())
+                while (!pr.symbol(fun_close) && !pr.empty())
                 {
                     pr.whitespace();
                     auto arg = pr.until_one_of("),");
