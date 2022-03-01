@@ -1,0 +1,20 @@
+#!/bin/sh
+
+
+FOLDER=~/.spark
+THEMES="themes"
+
+SELECTED="$1"
+
+
+test ! -d $FOLDER && echo "error: missing directory $FOLDER" && return
+
+test ! -f $FOLDER/$THEMES && echo "error: missing file $FOLDER/$THEMES" && return
+
+
+STR=$(grep -E "^[ ]*$SELECTED[ ]*=" $FOLDER/$THEMES | head -n1 | cut -d'=' -f2)
+
+echo "$STR"
+
+export SPARK_THEME="$STR"
+

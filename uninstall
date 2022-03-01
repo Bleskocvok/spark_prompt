@@ -2,6 +2,7 @@
 
 
 sudo rm /usr/local/bin/spark
+sudo rm /usr/local/bin/sptheme
 
 
 sed -i '/# spark start/,/# spark end/d' ~/.bashrc

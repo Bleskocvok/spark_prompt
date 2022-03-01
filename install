@@ -5,6 +5,11 @@ make
 
 sudo cp ./spark /usr/local/bin/spark
 
+sudo cp ./sptheme /usr/local/bin/sptheme
+
+mkdir -p ~/.spark
+touch ~/.spark/themes
+
 
 # remove old first
 sed -i '/# spark start/,/# spark end/d' ~/.bashrc
