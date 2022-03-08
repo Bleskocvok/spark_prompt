@@ -22,73 +22,10 @@
 #include <algorithm>    // find_if
 
 
-using namespace std::literals;
-using namespace std::string_literals;
-
-
-void print_prompt(const std::vector<segment>& segments)
-{
-    static const auto arrow = "\uE0B0"s;
-    static const auto pseudo = "▶"s;
-
-    for (size_t i = 0; i < segments.size(); i++)
-    {
-        std::cout << bg_color_str(segments[i].bg)
-                  << fg_color_str(segments[i].fg);
-
-        if (segments[i].sp_before)
-            std::cout << " ";
-        
-        std::cout << segments[i].str;
-
-        if (segments[i].sp_after)
-            std::cout << " ";
-
-        color next = i != segments.size() - 1 ? segments[i + 1].bg
-                                              : bit3::reset;
-
-        switch (segments[i].end)
-        {
-            case sep::empty:
-                std::cout << fg_color_str(bit3::reset);
-                break;
-
-            case sep::space:
-                std::cout << fg_color_str(bit3::reset)
-                          << " ";
-                break;
-
-            case sep::powerline:
-                std::cout << bg_color_str(next)
-                          << fg_color_str(segments[i].bg)
-                          << arrow;
-                break;
-
-            case sep::powerline_space:
-            {
-                // TODO: add option to change color of “thick”
-                color thick = rgb{ 0, 0, 0 };
-                std::cout << bg_color_str(thick)
-                          << fg_color_str(segments[i].bg)
-                          << arrow
-                          << fg_color_str(thick)
-                          << bg_color_str(next)
-                          << arrow;
-                break;
-            }
-
-            case sep::powerline_pseudo:
-                std::cout << bg_color_str(next)
-                          << fg_color_str(segments[i].bg)
-                          << pseudo;
-                break;
-        }
-    }
-}
-
-
 int main(int argc, char** argv)
 {
+    using namespace std::literals;
+
     bool validate = false;
     int exit_code = 0;
     for (int i = 1; i < argc; i++)
@@ -129,14 +66,15 @@ int main(int argc, char** argv)
     auto theme = std::string{ env == nullptr ? "" : env };
     parsed pr{ theme.empty() ? theme_def : theme };
 
-    auto r = parse_segments(pr, funcs);
+    auto r = parse_style(pr, funcs);
 
     if (const auto* err = std::get_if<error>(&r))
     {
         if (!validate)
             return std::cout << "error: " << *err << " |> " << "\n", 1;
 
-        bool use_color = isatty(STDOUT_FILENO);
+        // bool use_color = isatty(STDOUT_FILENO);
+        bool use_color = true;
 
         std::cout << "" << theme << "\n";
 
@@ -152,9 +90,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto segments = std::get<std::vector<segment>>(r);
-
-    print_prompt(segments);
+    auto stl = std::get<style>(r);
+    stl.render();
 
     std::cout << fg_color_str(bit3::reset) << " \n";
 

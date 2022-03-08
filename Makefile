@@ -3,7 +3,11 @@ CC = $(CXX)
 CXXFLAGS ?= -std=c++17 -pedantic -Wall -Wextra -O2
 
 TARGET = spark
-SRC = src/spark.cpp
+SRC = \
+	src/spark.cpp \
+	src/style.cpp \
+	src/color.cpp \
+	src/standard.cpp
 OBJ = $(patsubst src/%.cpp,%.o,$(SRC))
 DEPEND = $(OBJ:.o=.d)
 

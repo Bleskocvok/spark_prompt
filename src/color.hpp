@@ -8,9 +8,6 @@
 #include <string_view>
 
 
-using sv = std::string_view;
-
-
 inline auto INVBEG = std::string{ "\\[" };
 inline auto INVEND = std::string{ "\\]" };
 
@@ -42,6 +39,9 @@ struct rgb
 };
 
 
+using color = std::variant<bit3, rgb>;
+
+
 inline std::string wrap_invis(const std::string& str)
 {
     if (!USE_INVIS)
@@ -50,66 +50,12 @@ inline std::string wrap_invis(const std::string& str)
     return INVBEG + str + INVEND;
 }
 
+std::string fg_color_str(color col);
 
-using color = std::variant<bit3, rgb>;
+std::string bg_color_str(color col);
 
+std::string fg_color(bit3 col, const std::string& str);
 
-struct converter
-{
-    std::string param_bit3;
-    std::string param_rgb;
-    uint8_t shift = 0;
+std::string bg_color(bit3 col, const std::string& str);
 
-    std::string operator()(bit3 col)
-    {
-        auto num = static_cast<uint8_t>(col);
-        return wrap_invis(
-                    COLBEGIN
-                    + param_bit3
-                    + std::to_string(num == 0 ? 0 : num + shift)
-                    + COLEND);
-    }
-
-    std::string operator()(rgb col)
-    {
-        return wrap_invis(
-                    COLBEGIN
-                    + param_rgb
-                    + std::to_string(col.r)
-                    + ";"
-                    + std::to_string(col.g)
-                    + ";"
-                    + std::to_string(col.b)
-                    + COLEND);
-    }
-};
-
-
-inline std::string fg_color_str(color col)
-{
-    return std::visit(converter{ "1;", "38;2;", 0 }, col);
-}
-
-
-inline std::string bg_color_str(color col)
-{
-    return std::visit(converter{ "", "48;2;", 10 }, col);
-}
-
-
-inline std::string fg_color(bit3 col, const std::string& str)
-{
-    return fg_color_str(col) + str + fg_color_str(bit3::reset);
-}
-
-
-inline std::string bg_color(bit3 col, const std::string& str)
-{
-    return bg_color_str(col) + str + bg_color_str(bit3::reset);
-}
-
-
-inline std::optional<std::string> parse_color(std::string_view)
-{
-    return std::nullopt;
-}
+std::optional<std::string> parse_color(std::string_view);
