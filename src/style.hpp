@@ -201,11 +201,8 @@ inline std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
 
         bool sp_after  = pr.whitespace();
         auto between   = pr.parse(":>");
-        bool sp_before = pr.whitespace();
-        bool fin       = pr.next_one_of("[|");
 
         sep end = sep::empty;
-
         if (between.empty() && sp_after)
             end = sep::space;
         else if (between == ":>")
@@ -214,6 +211,11 @@ inline std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
             end = sep::powerline_pseudo;
         else if (between == ">>")
             end = sep::powerline_space;
+        else
+            return error{ "invalid separator" };
+
+        bool sp_before = pr.whitespace();
+        bool fin       = pr.next_one_of("[|");
 
         seg.end       = end;
         seg.sp_before = before;

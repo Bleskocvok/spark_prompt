@@ -2,6 +2,7 @@
 /.vscode/
 /prompt
 /spark
+/a.out
 
 *.o
 *.d

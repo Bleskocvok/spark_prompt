@@ -89,12 +89,28 @@ void print_prompt(const std::vector<segment>& segments)
 
 int main(int argc, char** argv)
 {
+    bool validate = false;
     int exit_code = 0;
-    if (argc >= 2)
-        exit_code = std::atoi(argv[1]);
-
-    if (argc >= 3 && argv[2] == std::string{ "--preview" })
-        USE_INVIS = false;
+    for (int i = 1; i < argc; i++)
+    {
+        auto arg = std::string_view{ argv[i] };
+        if (arg.find("--") == 0)
+        {
+            if (arg.substr(2) == "preview")
+            {
+                USE_INVIS = false;
+            }
+            else if (arg.substr(2) == "validate")
+            {
+                validate = true;
+                USE_INVIS = false;
+            }
+        }
+        else
+        {
+            exit_code = std::stoi(std::string{ arg });
+        }
+    }
 
     functions funcs{};
     funcs.add<username_t>("username");
@@ -116,7 +132,25 @@ int main(int argc, char** argv)
     auto r = parse_segments(pr, funcs);
 
     if (const auto* err = std::get_if<error>(&r))
-        return std::cout << "error: " << *err << " |> " << "\n", 1;
+    {
+        if (!validate)
+            return std::cout << "error: " << *err << " |> " << "\n", 1;
+
+        bool use_color = isatty(STDOUT_FILENO);
+
+        std::cout << "" << theme << "\n";
+
+        std::cout << "";
+        size_t idx = pr.read_bytes();
+        for (size_t i = 0; i < idx; i++)
+            std::cout << " ";
+        std::cout << (use_color ? fg_color(bit3::red, "^~~") : "^~~"s) << "\n";
+
+        std::cout << "error (" << idx << "): "
+                  << (use_color ? fg_color(bit3::red, *err) : *err)
+                  << "\n";
+        return 1;
+    }
 
     auto segments = std::get<std::vector<segment>>(r);
 

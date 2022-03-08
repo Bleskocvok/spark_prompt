@@ -10,15 +10,22 @@ class parsed
 {
 
 std::string_view str;
+std::string_view start;
 
 public:
-    parsed(std::string_view str) : str(str)
+    parsed(std::string_view str) : str(str), start(str)
     { }
 
 
     bool empty() const
     {
         return str.empty();
+    }
+
+
+    size_t read_bytes() const
+    {
+        return str.data() - start.data();
     }
 
 

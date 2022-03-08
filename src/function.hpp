@@ -30,7 +30,7 @@ public:
                                           std::vector<std::string> params)
     {
         parameters = std::move(params);
-    
+
         // TODO: this is a temporary workaround/hack
         try
         {
@@ -63,10 +63,12 @@ public:
                                                 segment& segment,
                                                 std::vector<std::string> params)
     {
+        using namespace std::literals;
+
         auto found = data.find(name);
         if (found == data.end())
-            return func::f_err{ "invalid function" };
-        
+            return func::f_err{ "invalid function `"s + name + "`" };
+
         auto& func = *found->second;
         return func.call(segment, std::move(params));
     }
