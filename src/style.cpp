@@ -1,9 +1,13 @@
 
 #include "style.hpp"
 
+#include "utils.hpp"
+
 #include <iostream>     // cout
 #include <utility>      // pair, move
 #include <unordered_map>
+#include <cctype>
+
 
 
 using namespace std::literals;
@@ -18,7 +22,7 @@ void style::render(std::ostream& out) const
     for (size_t i = 0; i < segments.size(); i++)
     {
         out << bg_color_str(segments[i].th.bg)
-                  << fg_color_str(segments[i].th.fg);
+            << fg_color_str(segments[i].th.fg, segments[i].th.ef);
 
         if (segments[i].sp_before)
             out << " ";
@@ -44,7 +48,7 @@ void style::render(std::ostream& out) const
 
             case sep::powerline:
                 out << bg_color_str(next)
-                    << fg_color_str(segments[i].th.bg)
+                    << fg_color_str(segments[i].th.bg, effect::underline)
                     << arrow;
                 break;
 
@@ -88,18 +92,21 @@ static std::variant<color, error> parse_color(parsed& pr)
     static const auto rgb_delimiter = ',';
     static const auto alpha = "abcdefghijklmnopqrstuvwxyz"sv;
     static const auto num = "0123456789"sv;
+    static const char hash = '#';
+    static const auto hexnum = "0123456789aAbBcCdDeEfF"sv;
+
 
     static const auto colors = std::unordered_map<std::string, color>
     {
-        { "black",   bit3::black },
-        { "red",     bit3::red },
-        { "green",   bit3::green },
-        { "yellow",  bit3::yellow },
-        { "blue",    bit3::blue },
+        { "black",   bit3::black   },
+        { "red",     bit3::red     },
+        { "green",   bit3::green   },
+        { "yellow",  bit3::yellow  },
+        { "blue",    bit3::blue    },
         { "magenta", bit3::magenta },
-        { "cyan",    bit3::cyan },
-        { "white",   bit3::white },
-        { "reset",   bit3::reset },
+        { "cyan",    bit3::cyan    },
+        { "white",   bit3::white   },
+        { "reset",   bit3::reset   },
     };
 
     if (pr.next_one_of(alpha))
@@ -129,6 +136,20 @@ static std::variant<color, error> parse_color(parsed& pr)
         pr.whitespace();
         col.b = std::stoi(pr.parse(num));
         return col;
+    }
+
+    if (pr.symbol(hash))
+    {
+        auto num = pr.parse(hexnum);
+        if (num.empty())
+            return error{ "hex number cannot be empty" };
+        int dec = hex_to_dec(num);
+        if (dec < 0 || dec > 255 * 255 * 255)
+            return error{ "invalid hex color" };
+        uint8_t b = dec % 256;
+        uint8_t g = (dec /= 256) % 256;
+        uint8_t r = (dec /= 256) % 256;
+        return rgb{ r, g, b };
     }
 
     return error{ "invalid color" };

@@ -10,13 +10,11 @@
 #include <variant>      // std::get_if
 
 
-using error = std::string;
-
-struct parse_error
-{
-    std::string msg;
-    size_t idx;
-};
+// struct parse_error
+// {
+//     std::string msg;
+//     size_t idx;
+// };
 
 
 struct style;

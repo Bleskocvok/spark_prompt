@@ -1,6 +1,7 @@
 // custom includes
 #include "style.hpp"
 #include "color.hpp"
+#include "utils.hpp"
 #include "parse_utils.hpp"
 #include "function.hpp"
 #include "standard.hpp"
@@ -21,17 +22,6 @@
 #include <optional>
 #include <algorithm>    // find_if
 #include <sstream>      // ostringstream
-
-
-void remove_redundant(std::string& str)
-{
-    const auto redundant = std::string{ "\\]\\[" };
-    auto found = decltype(str.find(redundant)){};
-    while ((found = str.find(redundant)) != str.npos)
-    {
-        str.erase(found, redundant.size());
-    }
-}
 
 
 int main(int argc, char** argv)
@@ -71,7 +61,7 @@ int main(int argc, char** argv)
 
     static const auto theme_def = std::string_view
     {
-        "[ ' ' \\exit(✓, ×) ] >> [ {white;5,82,158} \\username() ] :> "
+        "[ ' ' \\exit(✓, ×) ] >> [ {white;#05529e} \\username() ] :> "
         "[ {white;4,56,107} '@' \\hostname ] :> "
         "[ {255,255,255;5,82,158} \\pwd ] :> "
     };
@@ -99,7 +89,8 @@ int main(int argc, char** argv)
         std::cout << (use_color ? fg_color(bit3::red, "^~~") : "^~~"s) << "\n";
 
         std::cout << "error (" << idx << "): "
-                  << (use_color ? fg_color(bit3::red, *err) : *err)
+                  << (use_color ? fg_color(bit3::red, err->message())
+                                : err->message())
                   << "\n";
         return 1;
     }

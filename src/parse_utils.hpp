@@ -4,6 +4,24 @@
 #include <string>
 #include <string_view>
 #include <cctype>           // std::isspace
+#include <ostream>
+
+
+struct error
+{
+    std::string msg;
+
+    const std::string& message() const
+    {
+        return msg;
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const error& err)
+    {
+        out << err.message();
+        return out;
+    }
+};
 
 
 class parsed
