@@ -35,10 +35,10 @@ std::variant<std::string, err> exit_t::perform(segment& seg)
 
     if (exit_code() == 0)
     {
-        seg.bg = rgb{ 79, 125, 39 };
+        seg.th.bg = rgb{ 79, 125, 39 };
         return ok;
     }
-    seg.bg = rgb{ 117, 4, 4 };
+    seg.th.bg = rgb{ 117, 4, 4 };
     return nok;
 }
 

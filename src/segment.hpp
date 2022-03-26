@@ -16,12 +16,20 @@ enum class sep
 };
 
 
+struct theme
+{
+    color fg = bit3::white,
+          bg = bit3::reset;
+
+    effect ef = effect::none;
+};
+
+
 struct segment
 {
     std::string str;
 
-    color fg = bit3::white,
-          bg = bit3::reset;
+    theme th;
 
     sep end = sep::powerline;
 

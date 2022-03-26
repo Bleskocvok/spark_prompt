@@ -3,6 +3,7 @@
 
 #include <iostream>     // cout
 #include <utility>      // pair, move
+#include <unordered_map>
 
 
 using namespace std::literals;
@@ -16,8 +17,8 @@ void style::render(std::ostream& out) const
 
     for (size_t i = 0; i < segments.size(); i++)
     {
-        out << bg_color_str(segments[i].bg)
-                  << fg_color_str(segments[i].fg);
+        out << bg_color_str(segments[i].th.bg)
+                  << fg_color_str(segments[i].th.fg);
 
         if (segments[i].sp_before)
             out << " ";
@@ -27,7 +28,7 @@ void style::render(std::ostream& out) const
         if (segments[i].sp_after)
             out << " ";
 
-        color next = i != segments.size() - 1 ? segments[i + 1].bg
+        color next = i != segments.size() - 1 ? segments[i + 1].th.bg
                                               : bit3::reset;
 
         switch (segments[i].end)
@@ -43,7 +44,7 @@ void style::render(std::ostream& out) const
 
             case sep::powerline:
                 out << bg_color_str(next)
-                    << fg_color_str(segments[i].bg)
+                    << fg_color_str(segments[i].th.bg)
                     << arrow;
                 break;
 
@@ -52,7 +53,7 @@ void style::render(std::ostream& out) const
                 // TODO: add option to change color of “thick”
                 color thick = rgb{ 0, 0, 0 };
                 out << bg_color_str(thick)
-                    << fg_color_str(segments[i].bg)
+                    << fg_color_str(segments[i].th.bg)
                     << arrow
                     << fg_color_str(thick)
                     << bg_color_str(next)
@@ -62,7 +63,7 @@ void style::render(std::ostream& out) const
 
             case sep::powerline_pseudo:
                 out << bg_color_str(next)
-                    << fg_color_str(segments[i].bg)
+                    << fg_color_str(segments[i].th.bg)
                     << pseudo;
                 break;
 
@@ -88,28 +89,24 @@ static std::variant<color, error> parse_color(parsed& pr)
     static const auto alpha = "abcdefghijklmnopqrstuvwxyz"sv;
     static const auto num = "0123456789"sv;
 
+    static const auto colors = std::unordered_map<std::string, color>
+    {
+        { "black",   bit3::black },
+        { "red",     bit3::red },
+        { "green",   bit3::green },
+        { "yellow",  bit3::yellow },
+        { "blue",    bit3::blue },
+        { "magenta", bit3::magenta },
+        { "cyan",    bit3::cyan },
+        { "white",   bit3::white },
+        { "reset",   bit3::reset },
+    };
+
     if (pr.next_one_of(alpha))
     {
         auto str = pr.parse(alpha);
-        if (str == "black")
-            return bit3::black;
-        if (str == "red")
-            return bit3::red;
-        if (str == "green")
-            return bit3::green;
-        if (str == "yellow")
-            return bit3::yellow;
-        if (str == "blue")
-            return bit3::blue;
-        if (str == "magenta")
-            return bit3::magenta;
-        if (str == "cyan")
-            return bit3::cyan;
-        if (str == "white")
-            return bit3::white;
-        if (str == "reset")
-            return bit3::reset;
-
+        if (auto it = colors.find(str); it != colors.end())
+            return it->second;
         return error{ "invalid color" };
     }
 
@@ -138,7 +135,7 @@ static std::variant<color, error> parse_color(parsed& pr)
 }
 
 
-static std::variant<std::pair<color, color>, error> parse_colors(parsed& pr)
+static std::variant<theme, error> parse_theme(parsed& pr)
 {
     pr.whitespace();
 
@@ -162,7 +159,7 @@ static std::variant<std::pair<color, color>, error> parse_colors(parsed& pr)
 
     color bg = std::get<color>(col);
 
-    return std::pair{ fg, bg };
+    return theme{ fg, bg, effect::none };
 }
 
 
@@ -223,7 +220,7 @@ static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
         }
         else if (pr.symbol('{'))
         {
-            auto res = parse_colors(pr);
+            auto res = parse_theme(pr);
 
             if (const error* err = std::get_if<error>(&res))
                 return *err;
@@ -233,10 +230,7 @@ static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
             if (!pr.symbol('}'))
                 return error{ "expected closing }" };
 
-            auto [fg, bg] = std::get<std::pair<color, color>>(res);
-
-            result.fg = fg;
-            result.bg = bg;
+            result.th = std::get<theme>(res);
         }
         else
         {

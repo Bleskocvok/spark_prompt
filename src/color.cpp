@@ -33,9 +33,18 @@ struct converter
 };
 
 
-std::string fg_color_str(color col)
+std::string effect_string(effect ef)
 {
-    return std::visit(converter{ "1;", "38;2;", 0 }, col);
+    if (ef == effect::none)
+        return "";
+    
+    return std::to_string(uint8_t(ef)) + ";";
+}
+
+
+std::string fg_color_str(color col, effect ef)
+{
+    return std::visit(converter{ effect_string(ef), "38;2;", 0 }, col);
 }
 
 
@@ -61,3 +70,5 @@ std::optional<std::string> parse_color(std::string_view)
 {
     return std::nullopt;
 }
+
+

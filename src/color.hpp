@@ -31,6 +31,20 @@ enum class bit3 : uint8_t
 };
 
 
+enum class effect : uint8_t
+{
+    none       = 0,
+    bold       = 1,
+    low        = 2,
+    cursive    = 3,
+    underline  = 4,
+    blink      = 5,
+    fast_blink = 6,
+    inverse    = 7,
+    // TODO: add the rest of supported attributes
+};
+
+
 struct rgb
 {
     uint8_t r = 255,
@@ -50,7 +64,7 @@ inline std::string wrap_invis(const std::string& str)
     return INVBEG + str + INVEND;
 }
 
-std::string fg_color_str(color col);
+std::string fg_color_str(color col, effect ef = effect::none);
 
 std::string bg_color_str(color col);
 
