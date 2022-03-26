@@ -11,6 +11,8 @@ enum class sep
     powerline,
     powerline_space,
     powerline_pseudo,
+    newline,
+    horizontal_space,
 };
 
 

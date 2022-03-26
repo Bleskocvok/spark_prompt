@@ -9,23 +9,23 @@ using namespace std::literals;
 using namespace std::string_literals;
 
 
-void style::render() const
+void style::render(std::ostream& out) const
 {
     static const auto arrow = "\uE0B0"s;
     static const auto pseudo = "▶"s;
 
     for (size_t i = 0; i < segments.size(); i++)
     {
-        std::cout << bg_color_str(segments[i].bg)
+        out << bg_color_str(segments[i].bg)
                   << fg_color_str(segments[i].fg);
 
         if (segments[i].sp_before)
-            std::cout << " ";
-        
-        std::cout << segments[i].str;
+            out << " ";
+
+        out << segments[i].str;
 
         if (segments[i].sp_after)
-            std::cout << " ";
+            out << " ";
 
         color next = i != segments.size() - 1 ? segments[i + 1].bg
                                               : bit3::reset;
@@ -33,37 +33,46 @@ void style::render() const
         switch (segments[i].end)
         {
             case sep::empty:
-                std::cout << fg_color_str(bit3::reset);
+                out << fg_color_str(bit3::reset);
                 break;
 
             case sep::space:
-                std::cout << fg_color_str(bit3::reset)
-                          << " ";
+                out << fg_color_str(bit3::reset)
+                    << " ";
                 break;
 
             case sep::powerline:
-                std::cout << bg_color_str(next)
-                          << fg_color_str(segments[i].bg)
-                          << arrow;
+                out << bg_color_str(next)
+                    << fg_color_str(segments[i].bg)
+                    << arrow;
                 break;
 
             case sep::powerline_space:
             {
                 // TODO: add option to change color of “thick”
                 color thick = rgb{ 0, 0, 0 };
-                std::cout << bg_color_str(thick)
-                          << fg_color_str(segments[i].bg)
-                          << arrow
-                          << fg_color_str(thick)
-                          << bg_color_str(next)
-                          << arrow;
+                out << bg_color_str(thick)
+                    << fg_color_str(segments[i].bg)
+                    << arrow
+                    << fg_color_str(thick)
+                    << bg_color_str(next)
+                    << arrow;
                 break;
             }
 
             case sep::powerline_pseudo:
-                std::cout << bg_color_str(next)
-                          << fg_color_str(segments[i].bg)
-                          << pseudo;
+                out << bg_color_str(next)
+                    << fg_color_str(segments[i].bg)
+                    << pseudo;
+                break;
+
+            case sep::newline:
+                out << bg_color_str(bit3::reset)
+                    << "\n";
+                break;
+
+            case sep::horizontal_space:
+                // TODO
                 break;
         }
     }
@@ -256,7 +265,7 @@ static std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
         auto seg = std::get<segment>(var);
 
         bool sp_after  = pr.whitespace();
-        auto between   = pr.parse(":>");
+        auto between   = pr.parse(":>n\\~");
 
         sep end = sep::empty;
         if (between.empty() && sp_after)
@@ -267,6 +276,10 @@ static std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
             end = sep::powerline_pseudo;
         else if (between == ">>")
             end = sep::powerline_space;
+        else if (between == "\\n")
+            end = sep::newline;
+        else if (between == "~~~")
+            end = sep::horizontal_space;
         else
             return error{ "invalid separator" };
 

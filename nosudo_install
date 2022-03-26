@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+
+make
+
+cp ./spark ~/.spark/spark
+
+cp ./sptheme ~/.spark/sptheme
+
+mkdir -p ~/.spark
+touch ~/.spark/themes
+
+
+# remove old first
+sed -i '/# spark start/,/# spark end/d' ~/.bashrc
+
+# install new entry in bashrc
+echo '
+# spark start
+
+alias spark=~/.spark/spark
+alias sptheme=~/.spark/sptheme
+
+function _update_spark_prompt()
+{
+    PS1=$(spark $?)
+}
+
+export PROMPT_COMMAND="_update_spark_prompt"
+
+# spark end
+' >> ~/.bashrc
+

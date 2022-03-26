@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "parse.hpp"
+#include "parse_utils.hpp"
 #include "color.hpp"
 #include "segment.hpp"
 #include "function.hpp"
@@ -29,7 +29,7 @@ struct style
 {
     std::vector<segment> segments;
 
-    void render() const;
+    void render(std::ostream& out) const;
 };
 
 

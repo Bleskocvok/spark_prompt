@@ -1,7 +1,7 @@
 // custom includes
 #include "style.hpp"
 #include "color.hpp"
-#include "parse.hpp"
+#include "parse_utils.hpp"
 #include "function.hpp"
 #include "standard.hpp"
 #include "style.hpp"
@@ -20,6 +20,18 @@
 #include <variant>
 #include <optional>
 #include <algorithm>    // find_if
+#include <sstream>      // ostringstream
+
+
+void remove_redundant(std::string& str)
+{
+    const auto redundant = std::string{ "\\]\\[" };
+    auto found = decltype(str.find(redundant)){};
+    while ((found = str.find(redundant)) != str.npos)
+    {
+        str.erase(found, redundant.size());
+    }
+}
 
 
 int main(int argc, char** argv)
@@ -59,7 +71,7 @@ int main(int argc, char** argv)
 
     static const auto theme_def = std::string_view
     {
-        "[ ' ' \\exit(✓, ×) ] >> [ {white;5,82,158} \\username() ] :> [ {white;4,56,107} '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> "
+        "[ ' ' \\exit(✓, ×) ] >> [ {white;5,82,158} \\username() ] :> [ {white;4,56,107} '@' \\hostname ] :> [ {255,255,255;5,82,158} \\pwd ] :> "
     };
 
     auto env = getenv("SPARK_THEME");
@@ -91,9 +103,13 @@ int main(int argc, char** argv)
     }
 
     auto stl = std::get<style>(r);
-    stl.render();
+    auto out = std::ostringstream{};
+    stl.render(out);
 
-    std::cout << fg_color_str(bit3::reset) << " \n";
+    auto str = out.str();
+    remove_redundant(str);
+
+    std::cout << str << fg_color_str(bit3::reset) << " \n";
 
     return 0;
 }
