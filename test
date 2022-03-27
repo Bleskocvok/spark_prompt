@@ -3,7 +3,11 @@
 make || { echo "MAKE FAILED";  exit 1; }
 
 export SPARK_THEME="[ 'lol' "
-export SPARK_THEME="[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> "
+# export SPARK_THEME="[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> "
+
+export SPARK_THEME="[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] ' [ {255,255,255;5,82,158} \\pwd ] :> "
+
+echo $SPARK_THEME
 
 ./spark --validate
 

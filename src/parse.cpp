@@ -19,7 +19,6 @@ static std::variant<color, error> parse_color(parsed& pr)
     static const char hash = '#';
     static const auto hexnum = "0123456789aAbBcCdDeEfF"sv;
 
-
     static const auto colors = std::unordered_map<std::string, color>
     {
         { "black",   bit3::black   },
@@ -67,9 +66,11 @@ static std::variant<color, error> parse_color(parsed& pr)
         auto num = pr.parse(hexnum);
         if (num.empty())
             return error{ "hex number cannot be empty" };
+
         int dec = hex_to_dec(num);
-        if (dec < 0 || dec > 255 * 255 * 255)
+        if (dec < 0 || dec > 256 * 256 * 256)
             return error{ "invalid hex color" };
+
         uint8_t b = dec % 256;
         uint8_t g = (dec /= 256) % 256;
         uint8_t r = (dec /= 256) % 256;
@@ -172,6 +173,10 @@ static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
 
             result.str += std::get<std::string>(ret);
         }
+        else if (pr.symbol('~'))
+        {
+            result.str += ' ';
+        }
         else if (pr.symbol('\''))
         {
             auto str = pr.until('\'');
@@ -208,12 +213,34 @@ static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
 }
 
 
+static std::variant<sep, error> parse_sep(parsed& pr)
+{
+    static auto map = std::unordered_map<std::string, sep>
+    {
+        { {},    sep::empty },
+        { "~",   sep::space },
+        { ":>",  sep::powerline },
+        { ">",   sep::powerline_pseudo },
+        { ">>",  sep::powerline_space },
+        { "\\n", sep::newline },
+        { "<:",  sep::rpowerline },
+        { "<",   sep::rpowerline_pseudo },
+        { "<<",  sep::rpowerline_space },
+    };
+
+    auto between = pr.parse(":><n\\~");
+    auto found = map.find(between);
+    if (found == map.end())
+        return error{ "invalid separator" };
+
+    return found->second;
+}
+
+
 static std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
                                                                functions& funcs)
 {
     auto result = std::vector<segment>{};
-
-    bool before = false;
 
     while (!pr.empty())
     {
@@ -222,32 +249,14 @@ static std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
             return *err;
         auto seg = std::get<segment>(var);
 
-        bool sp_after  = pr.whitespace();
-        auto between   = pr.parse(":>n\\~");
+        pr.whitespace();
 
-        sep end = sep::empty;
-        if (between.empty() && sp_after)
-            end = sep::space;
-        else if (between == ":>")
-            end = sep::powerline;
-        else if (between == ">")
-            end = sep::powerline_pseudo;
-        else if (between == ">>")
-            end = sep::powerline_space;
-        else if (between == "\\n")
-            end = sep::newline;
-        else if (between == "~~~")
-            end = sep::horizontal_space;
-        else
-            return error{ "invalid separator" };
+        auto end = parse_sep(pr);
+        if (const error* err = std::get_if<error>(&end))
+            return *err;
+        seg.end = std::get<sep>(end);
 
-        bool sp_before = pr.whitespace();
-        bool fin       = pr.next_one_of("[|");
-
-        seg.end       = end;
-        seg.sp_before = before;
-        seg.sp_after  = sp_after  && end != sep::space;
-        before        = sp_before && end != sep::space && fin;
+        pr.whitespace();
 
         result.push_back(std::move(seg));
 

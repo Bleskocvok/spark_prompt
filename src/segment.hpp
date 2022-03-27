@@ -12,7 +12,10 @@ enum class sep
     powerline_space,
     powerline_pseudo,
     newline,
-    horizontal_space,
+
+    rpowerline,
+    rpowerline_space,
+    rpowerline_pseudo,
 };
 
 
@@ -32,7 +35,4 @@ struct segment
     theme th;
 
     sep end = sep::powerline;
-
-    bool sp_before = true,
-         sp_after = true;
 };

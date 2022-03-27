@@ -6,6 +6,7 @@
 #include "function.hpp"
 #include "standard.hpp"
 #include "parse.hpp"
+#include "unicode.hpp"
 
 // standard C includes
 #include <cstdlib>      // getenv
@@ -27,6 +28,9 @@
 int main(int argc, char** argv)
 {
     using namespace std::literals;
+
+    if (!set_locale())
+        return 1;
 
     bool validate = false;
     int exit_code = 0;
@@ -61,14 +65,16 @@ int main(int argc, char** argv)
 
     static const auto theme_def = std::string_view
     {
-        "[ ' ' \\exit(✓, ×) ] >> [ {white;#05529e} \\username() ] :> "
-        "[ {white;4,56,107} '@' \\hostname ] :> "
-        "[ {255,255,255;5,82,158} \\pwd ] :> "
+        "[~ \\exit(✓, ×)                    ~] >> "
+        "[~ {white;#05529e} \\username()    ~] <: "
+        "[~ {white;4,56,107} '@' \\hostname ~] << "
+        "[~ {#ffffff;5,82,158} \\pwd        ~] :> "
     };
 
     auto env = getenv("SPARK_THEME");
     auto theme = std::string{ env == nullptr ? "" : env };
-    parsed pr{ theme.empty() ? theme_def : theme };
+    theme = theme.empty() ? theme_def : theme;
+    parsed pr{ theme };
 
     auto r = parse_style(pr, funcs);
 
@@ -82,8 +88,8 @@ int main(int argc, char** argv)
 
         std::cout << "" << theme << "\n";
 
-        std::cout << "";
         size_t idx = pr.read_bytes();
+        idx += size_diff(theme.substr(0, idx));
         for (size_t i = 0; i < idx; i++)
             std::cout << " ";
         std::cout << (use_color ? fg_color(bit3::red, "^~~") : "^~~"s) << "\n";

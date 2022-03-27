@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <cctype>
 
+#include <sys/ioctl.h>
 
 
 using namespace std::literals;
@@ -22,13 +23,7 @@ void style::render(std::ostream& out) const
         out << bg_color_str(segments[i].th.bg)
             << fg_color_str(segments[i].th.fg, segments[i].th.ef);
 
-        if (segments[i].sp_before)
-            out << " ";
-
         out << segments[i].str;
-
-        if (segments[i].sp_after)
-            out << " ";
 
         color next = i != segments.size() - 1 ? segments[i + 1].th.bg
                                               : bit3::reset;
@@ -75,8 +70,30 @@ void style::render(std::ostream& out) const
                     << "\n";
                 break;
 
-            case sep::horizontal_space:
-                // TODO
+            case sep::rpowerline:
+                out << fg_color_str(bit3::reset)  // needed to cancel font effect
+                    << bg_color_str(segments[i].th.bg)
+                    << fg_color_str(next)
+                    << rarrow;
+                break;
+
+            case sep::rpowerline_space:
+            {
+                // TODO: add option to change color of “thick”
+                color thick = rgb{ 0, 0, 0 };
+                out << bg_color_str(segments[i].th.bg)
+                    << fg_color_str(thick)
+                    << rarrow
+                    << fg_color_str(next)
+                    << bg_color_str(thick)
+                    << rarrow;
+                break;
+            }
+
+            case sep::rpowerline_pseudo:
+                out << bg_color_str(segments[i].th.bg)
+                    << fg_color_str(next)
+                    << rpseudo;
                 break;
         }
     }
