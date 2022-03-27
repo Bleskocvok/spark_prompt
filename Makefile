@@ -6,6 +6,7 @@ TARGET = spark
 SRC = \
 	src/spark.cpp \
 	src/style.cpp \
+	src/parse.cpp \
 	src/color.cpp \
 	src/standard.cpp
 OBJ = $(patsubst src/%.cpp,%.o,$(SRC))

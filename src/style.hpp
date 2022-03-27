@@ -7,20 +7,7 @@
 #include "function.hpp"
 
 #include <vector>
-#include <variant>      // std::get_if
-
-
-// struct parse_error
-// {
-//     std::string msg;
-//     size_t idx;
-// };
-
-
-struct style;
-
-
-std::variant<style, error> parse_style(parsed& pr, functions& funcs);
+#include <ostream>
 
 
 struct style
