@@ -19,6 +19,11 @@ enum class sep
 };
 
 
+void render_sep(std::ostream& out, sep s, color fg, color bg, color next_bg);
+
+size_t sep_len(sep s);
+
+
 struct theme
 {
     color fg = bit3::white,
@@ -35,4 +40,8 @@ struct segment
     theme th;
 
     sep end = sep::powerline;
+
+    bool h_space = false;
+
+    size_t width() const;
 };

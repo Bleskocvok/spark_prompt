@@ -228,7 +228,7 @@ static std::variant<sep, error> parse_sep(parsed& pr)
         { "<<",  sep::rpowerline_space },
     };
 
-    auto between = pr.parse(":><n\\~");
+    auto between = pr.parse(":><n\\");
     auto found = map.find(between);
     if (found == map.end())
         return error{ "invalid separator" };
@@ -257,6 +257,9 @@ static std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
         seg.end = std::get<sep>(end);
 
         pr.whitespace();
+
+        if (pr.parse("~") == "~~")
+            seg.h_space = true;
 
         result.push_back(std::move(seg));
 

@@ -68,6 +68,7 @@ int main(int argc, char** argv)
         "[~ \\exit(✓, ×)                    ~] >> "
         "[~ {white;#05529e} \\username()    ~] <: "
         "[~ {white;4,56,107} '@' \\hostname ~] << "
+        " ~~ "
         "[~ {#ffffff;5,82,158} \\pwd        ~] :> "
     };
 

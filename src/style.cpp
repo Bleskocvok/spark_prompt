@@ -9,15 +9,32 @@
 #include <sys/ioctl.h>
 
 
-using namespace std::literals;
-using namespace std::string_literals;
+template<typename It>
+static size_t total_width(It begin, It end)
+{
+    size_t res = 0;
+    for (; begin != end; ++begin)
+    {
+        res += begin->width();
+    }
+    return res;
+}
+
+
+static void spaces(std::ostream& out, int i)
+{
+    for (int j = 0; j < i; j++)
+        out << " ";
+}
 
 
 void style::render(std::ostream& out) const
 {
-    static const auto arrow = "\uE0B0"s;
-    static const auto pseudo = "▶"s;
+    struct winsize win;
+    ioctl(1, TIOCGWINSZ, &win);
+    const int twidth = win.ws_col;
 
+    int w = 0;
     for (size_t i = 0; i < segments.size(); i++)
     {
         out << bg_color_str(segments[i].th.bg)
@@ -28,73 +45,15 @@ void style::render(std::ostream& out) const
         color next = i != segments.size() - 1 ? segments[i + 1].th.bg
                                               : bit3::reset;
 
-        switch (segments[i].end)
+        render_sep(out, segments[i].end, segments[i].th.fg,
+                   segments[i].th.bg, next);
+
+        w += segments[i].width();
+
+        if (segments[i].h_space)
         {
-            case sep::empty:
-                out << fg_color_str(bit3::reset);
-                break;
-
-            case sep::space:
-                out << fg_color_str(bit3::reset)
-                    << " ";
-                break;
-
-            case sep::powerline:
-                out << fg_color_str(bit3::reset)  // needed to cancel font effect
-                    << bg_color_str(next)
-                    << fg_color_str(segments[i].th.bg)
-                    << arrow;
-                break;
-
-            case sep::powerline_space:
-            {
-                // TODO: add option to change color of “thick”
-                color thick = rgb{ 0, 0, 0 };
-                out << bg_color_str(thick)
-                    << fg_color_str(segments[i].th.bg)
-                    << arrow
-                    << fg_color_str(thick)
-                    << bg_color_str(next)
-                    << arrow;
-                break;
-            }
-
-            case sep::powerline_pseudo:
-                out << bg_color_str(next)
-                    << fg_color_str(segments[i].th.bg)
-                    << pseudo;
-                break;
-
-            case sep::newline:
-                out << bg_color_str(bit3::reset)
-                    << "\n";
-                break;
-
-            case sep::rpowerline:
-                out << fg_color_str(bit3::reset)  // needed to cancel font effect
-                    << bg_color_str(segments[i].th.bg)
-                    << fg_color_str(next)
-                    << rarrow;
-                break;
-
-            case sep::rpowerline_space:
-            {
-                // TODO: add option to change color of “thick”
-                color thick = rgb{ 0, 0, 0 };
-                out << bg_color_str(segments[i].th.bg)
-                    << fg_color_str(thick)
-                    << rarrow
-                    << fg_color_str(next)
-                    << bg_color_str(thick)
-                    << rarrow;
-                break;
-            }
-
-            case sep::rpowerline_pseudo:
-                out << bg_color_str(segments[i].th.bg)
-                    << fg_color_str(next)
-                    << rpseudo;
-                break;
+            // size_t rest = total_width(segments.begin() + i + 1, segments.end());
+            // spaces(out, twidth - (rest + w));
         }
     }
 }

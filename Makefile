@@ -8,6 +8,7 @@ SRC = \
 	src/style.cpp \
 	src/parse.cpp \
 	src/color.cpp \
+	src/segment.cpp \
 	src/standard.cpp
 OBJ = $(patsubst src/%.cpp,%.o,$(SRC))
 DEPEND = $(OBJ:.o=.d)
