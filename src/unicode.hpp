@@ -3,15 +3,14 @@
 // c
 #include <clocale>      // set_locale, mbstate_t
 #include <cwchar>       // mbrlen
-#include <cctype>       // isdigit
 
 // cpp
 #include <string_view>  // string_view
 
 
-inline bool set_locale()
+inline bool set_locale(const char* loc = "")
 {
-    return std::setlocale(LC_ALL, "");
+    return std::setlocale(LC_ALL, loc);
 }
 
 

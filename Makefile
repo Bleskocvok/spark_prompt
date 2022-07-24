@@ -1,30 +1,42 @@
 
-CC = $(CXX)
 CXXFLAGS ?= -std=c++17 -pedantic -Wall -Wextra -O2
+
+CPPFLAGS += \
+	-I src/         \
+	-I src/grammar  \
+	-I src/parsing
 
 TARGET = spark
 SRC = \
 	src/spark.cpp \
-	src/style.cpp \
-	src/parse.cpp \
-	src/color.cpp \
-	src/segment.cpp \
+	src/parsing/parse.cpp \
+	src/grammar/style.cpp \
+	src/grammar/segment.cpp \
+	src/grammar/color.cpp \
 	src/standard.cpp
-OBJ = $(patsubst src/%.cpp,%.o,$(SRC))
+OBJ = $(patsubst src/%.cpp,obj/%.o,$(SRC))
 DEPEND = $(OBJ:.o=.d)
 
 
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-
-%.o: src/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 
-%.o: CXXFLAGS += -MMD -MP
+obj/%.o: src/%.cpp objdir
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+obj/%.o: CXXFLAGS += -MMD -MP
+
 
 -include $(DEPEND)
+
+
+objdir:
+	mkdir -p obj/
+	mkdir -p obj/grammar
+	mkdir -p obj/parsing
 
 
 clean:
@@ -33,4 +45,4 @@ clean:
 distclean: clean
 	$(RM) $(TARGET)
 
-.PHONY: all clean distclean
+.PHONY: all clean distclean objdir

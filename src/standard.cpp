@@ -1,5 +1,8 @@
 #include "standard.hpp"
 
+// c
+#include <cstdlib>      // getenv
+
 // POSIX
 #include <unistd.h>     // posix, geteuid, gethostname, getcwd
 #include <sys/types.h>  // geteuid, getpwuid
@@ -47,7 +50,7 @@ std::variant<std::string, err> pwd_t::perform(segment&)
 {
     // using namespace std::string_literals;
 
-    char* buffer = getenv("PWD");
+    char* buffer = std::getenv("PWD");
     if (buffer == nullptr)
         return "";
 

@@ -6,6 +6,7 @@
 // cpp
 #include <string_view>  // string_view
 #include <string>       // string
+#include <stdexcept>    // runtime_error
 
 
 // TODO: perhaps improve complexity or whatever
@@ -13,10 +14,9 @@ inline void remove_redundant(std::string& str)
 {
     const auto redundant = std::string{ "\\]\\[" };
     auto found = decltype(str.find(redundant)){};
+
     while ((found = str.find(redundant)) != str.npos)
-    {
         str.erase(found, redundant.size());
-    }
 }
 
 
@@ -36,7 +36,7 @@ inline int hex_to_dec(std::string_view str)
 
         auto i = hexval.find(low(c));
         if (i == hexval.npos)
-            return -1;
+            throw std::runtime_error("invalid hex character '"s + c + "'");
 
         res += ex * i;
         ex *= 16;

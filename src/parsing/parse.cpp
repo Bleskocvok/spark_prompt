@@ -20,7 +20,6 @@ static std::variant<color, error> parse_color(parsed& pr)
     static const auto num = "0123456789"sv;
     static const char hash = '#';
     static const auto hexnum = "0123456789aAbBcCdDeEfF"sv;
-
     static const auto colors = std::map<std::string, color>
     {
         { "black",   bit3::black   },

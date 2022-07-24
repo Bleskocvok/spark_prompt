@@ -7,8 +7,10 @@
 #include <string>       // string
 #include <string_view>  // string_view
 #include <ostream>      // ostream
+#include <stdexcept>    // runtime_error
 
 
+// TODO: add inheritance from runtime_error
 struct error
 {
     std::string msg;
@@ -28,7 +30,6 @@ struct error
 
 class parsed
 {
-
     std::string_view str;
     std::string_view start;
 
@@ -87,10 +88,7 @@ public:
 
     bool whitespace()
     {
-        auto isspace = [&](unsigned char ch) -> bool
-        {
-            return std::isspace(ch);
-        };
+        auto isspace = [&](unsigned char ch) { return std::isspace(ch); };
 
         bool found = false;
         while (!str.empty() && isspace(str.front()))
@@ -104,10 +102,7 @@ public:
 
     bool symbol(char ch)
     {
-        if (str.empty())
-            return false;
-
-        if (str.front() != ch)
+        if (str.empty() || str.front() != ch)
             return false;
 
         str.remove_prefix(1);
