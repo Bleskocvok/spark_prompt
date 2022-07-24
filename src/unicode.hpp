@@ -1,10 +1,12 @@
 #pragma once
 
+// c
 #include <clocale>      // set_locale, mbstate_t
 #include <cwchar>       // mbrlen
 #include <cctype>       // isdigit
 
-#include <string_view>
+// cpp
+#include <string_view>  // string_view
 
 
 inline bool set_locale()

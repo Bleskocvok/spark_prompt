@@ -1,7 +1,11 @@
-
 #pragma once
 
+// custom
 #include "color.hpp"
+
+// cpp
+#include <ostream>      // ostream
+#include <string>       // string
 
 
 enum class sep

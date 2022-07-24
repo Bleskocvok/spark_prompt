@@ -1,11 +1,13 @@
 #include "parse.hpp"
 
+// custom
 #include "utils.hpp"
 
-#include <iostream>     // cout
-#include <utility>      // pair, move
-#include <unordered_map>
-#include <cctype>
+// cpp
+#include <utility>      // move
+#include <map>          // map
+#include <string>       // string, stoi
+#include <vector>       // vector
 
 
 static std::variant<color, error> parse_color(parsed& pr)
@@ -19,7 +21,7 @@ static std::variant<color, error> parse_color(parsed& pr)
     static const char hash = '#';
     static const auto hexnum = "0123456789aAbBcCdDeEfF"sv;
 
-    static const auto colors = std::unordered_map<std::string, color>
+    static const auto colors = std::map<std::string, color>
     {
         { "black",   bit3::black   },
         { "red",     bit3::red     },
@@ -215,7 +217,7 @@ static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
 
 static std::variant<sep, error> parse_sep(parsed& pr)
 {
-    static auto map = std::unordered_map<std::string, sep>
+    static auto map = std::map<std::string, sep>
     {
         { {},    sep::empty },
         { "~",   sep::space },

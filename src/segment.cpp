@@ -1,13 +1,12 @@
-
 #include "segment.hpp"
 
+// custom
 #include "unicode.hpp"
 
-#include <iostream>     // cout
-#include <utility>      // pair, move
-#include <unordered_map>
-#include <cctype>
-#include <stdexcept>
+// cpp
+#include <stdexcept>    // logic_error
+#include <string>       // ""s
+#include <string_view>  // ""sv
 
 
 using namespace std::literals;
@@ -18,10 +17,10 @@ size_t sep_len(sep s)
 {
     switch (s)
     {
+        case sep::newline:              // [[fallthrough]]
         case sep::empty:                return 0;
 
-        case sep::space:                // [[fallthrough]]
-        case sep::newline:              return 1;
+        case sep::space:                return 1;
 
         case sep::powerline:            // [[fallthrough]]
         case sep::rpowerline:           // [[fallthrough]]

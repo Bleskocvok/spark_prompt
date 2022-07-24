@@ -1,6 +1,6 @@
-
 #include "standard.hpp"
 
+// POSIX
 #include <unistd.h>     // posix, geteuid, gethostname, getcwd
 #include <sys/types.h>  // geteuid, getpwuid
 #include <pwd.h>        // getpwuid

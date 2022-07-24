@@ -1,15 +1,16 @@
-
 #pragma once
 
+// custom
 #include "segment.hpp"
 
-#include <unordered_map>
+// cpp
+#include <map>          // map
 #include <string>       // stoi
-#include <vector>
-#include <variant>
+#include <vector>       // vector
+#include <variant>      // variant
 #include <utility>      // move
 #include <memory>       // unique_ptr
-#include <tuple>        // std::ignore
+#include <tuple>        // ignore
 
 
 class func
@@ -55,7 +56,7 @@ protected:
 
 class functions
 {
-std::unordered_map<std::string, std::unique_ptr<func>> data;
+    std::map<std::string, std::unique_ptr<func>> data;
 
 public:
 

@@ -1,11 +1,14 @@
 #pragma once
 
-#include <algorithm>
-#include <cctype>
-#include <string_view>
-#include <string>
+// c
+#include <cctype>       // tolower
+
+// cpp
+#include <string_view>  // string_view
+#include <string>       // string
 
 
+// TODO: perhaps improve complexity or whatever
 inline void remove_redundant(std::string& str)
 {
     const auto redundant = std::string{ "\\]\\[" };

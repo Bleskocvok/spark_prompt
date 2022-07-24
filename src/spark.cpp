@@ -10,17 +10,16 @@
 
 // standard C includes
 #include <cstdlib>      // getenv
-#include <cstdio>
 #include <cstdint>      // uint8_t
 #include <cctype>       // isspace
 
 // standard C++ includes
-#include <string>       // to_string, stoi
-#include <string_view>
-#include <iostream>
-#include <vector>
-#include <variant>
-#include <optional>
+#include <string>       // to_string, stoi, ""s
+#include <string_view>  // string_view
+#include <iostream>     // cout
+#include <vector>       // vector
+#include <variant>      // variant, get, get_if
+#include <optional>     // optional
 #include <algorithm>    // find_if
 #include <sstream>      // ostringstream
 
@@ -66,13 +65,13 @@ int main(int argc, char** argv)
     static const auto theme_def = std::string_view
     {
         "[~ \\exit(✓, ×)                    ~] >> "
-        "[~ {white;#05529e} \\username()    ~] <: "
-        "[~ {white;4,56,107} '@' \\hostname ~] << "
-        " ~~ "
+        "[~ {white;#05529e} \\username()    ~] :> "
+        "[~ {white;4,56,107} '@' \\hostname ~] >> "
+        // " ~~ "
         "[~ {#ffffff;5,82,158} \\pwd        ~] :> "
     };
 
-    auto env = getenv("SPARK_THEME");
+    auto env = std::getenv("SPARK_THEME");
     auto theme = std::string{ env == nullptr ? "" : env };
     theme = theme.empty() ? theme_def : theme;
     parsed pr{ theme };

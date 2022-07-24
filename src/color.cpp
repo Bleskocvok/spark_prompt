@@ -1,5 +1,8 @@
-
 #include "color.hpp"
+
+// cpp
+#include <string>       // string, to_string
+#include <variant>      // variant
 
 
 struct converter

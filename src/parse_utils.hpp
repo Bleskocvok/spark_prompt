@@ -1,10 +1,12 @@
-
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <cctype>           // std::isspace
-#include <ostream>
+// c
+#include <cctype>       // isspace
+
+// cpp
+#include <string>       // string
+#include <string_view>  // string_view
+#include <ostream>      // ostream
 
 
 struct error
@@ -27,8 +29,8 @@ struct error
 class parsed
 {
 
-std::string_view str;
-std::string_view start;
+    std::string_view str;
+    std::string_view start;
 
 public:
     parsed(std::string_view str) : str(str), start(str)

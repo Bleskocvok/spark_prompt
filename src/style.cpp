@@ -1,11 +1,9 @@
-
 #include "style.hpp"
 
-#include <iostream>     // cout
-#include <utility>      // pair, move
-#include <unordered_map>
-#include <cctype>
+// cpp
+#include <ostream>      // ostream
 
+// linux
 #include <sys/ioctl.h>
 
 
@@ -31,8 +29,8 @@ static void spaces(std::ostream& out, int i)
 void style::render(std::ostream& out) const
 {
     struct winsize win;
-    ioctl(1, TIOCGWINSZ, &win);
-    const int twidth = win.ws_col;
+    ioctl(2, TIOCGWINSZ, &win);
+    const int twidth = win.ws_col - 2;
 
     int w = 0;
     for (size_t i = 0; i < segments.size(); i++)
@@ -52,8 +50,8 @@ void style::render(std::ostream& out) const
 
         if (segments[i].h_space)
         {
-            // size_t rest = total_width(segments.begin() + i + 1, segments.end());
-            // spaces(out, twidth - (rest + w));
+            size_t rest = total_width(segments.begin() + i + 1, segments.end());
+            spaces(out, twidth - (rest + w));
         }
     }
 }

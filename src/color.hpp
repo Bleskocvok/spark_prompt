@@ -1,11 +1,13 @@
-
 #pragma once
 
+// c
 #include <cstdint>      // uint8_t
-#include <variant>
-#include <string>
-#include <optional>
-#include <string_view>
+
+// cpp
+#include <variant>      // variant
+#include <string>       // string
+#include <optional>     // optional
+#include <string_view>  // string_view
 
 
 inline auto INVBEG = std::string{ "\\[" };
