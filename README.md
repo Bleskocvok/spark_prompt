@@ -14,7 +14,7 @@ syntax example
 \a x b = a x b
 [
     ~ { if exit then #FFfFF;#000000 else #000000;#FFfFF ; bold } ~
-    if exit then 'x' else 'v'
+    (if exit then 'x' else 'v')
 ] >>
 [ ~ { white   ; 5,82,158   }     username ~ ] :>
 [ ~ { white   ; 4, 56, 107 } '@' hostname ~ ] >>

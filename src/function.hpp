@@ -15,9 +15,8 @@
 
 class func
 {
-
-int code = 1;
-std::vector<std::string> parameters;
+    int code = 1;
+    std::vector<std::string> parameters;
 
 public:
     struct f_err { std::string msg; };
