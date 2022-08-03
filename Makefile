@@ -24,7 +24,7 @@ $(TARGET): $(OBJ)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 
-obj/%.o: src/%.cpp objdir
+obj/%.o: src/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 obj/%.o: CXXFLAGS += -MMD -MP
@@ -33,7 +33,7 @@ obj/%.o: CXXFLAGS += -MMD -MP
 -include $(DEPEND)
 
 
-objdir:
+prepare:
 	mkdir -p obj/
 	mkdir -p obj/grammar
 	mkdir -p obj/parsing
@@ -45,4 +45,4 @@ clean:
 distclean: clean
 	$(RM) $(TARGET)
 
-.PHONY: all clean distclean objdir
+.PHONY: all clean distclean prepare

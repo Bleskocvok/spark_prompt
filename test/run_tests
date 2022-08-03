@@ -1,0 +1,39 @@
+#!/bin/bash
+
+
+# run from ../ as
+#     test/run_tests
+
+
+make || { echo "MAKE FAILED";  exit 1; }
+
+# export SPARK_THEME="[ 'lol' "
+# export SPARK_THEME="[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] >> [ {255,255,255;5,82,158} \\pwd ] :> "
+
+# export SPARK_THEME="[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] ' [ {255,255,255;5,82,158} \\pwd ] :> "
+
+# echo $SPARK_THEME
+
+# ./spark --validate
+
+
+
+
+sptest()
+{
+    export SPARK_THEME="$1"
+    ./spark --validate
+}
+
+
+sptest "[ ' ' ] >> [ {white;4,56,107} ][ {1,2,3;5,82,4} ] :> [ { 2 , 2 , 2 ; #012345 } ] "
+
+sptest "[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] ' [ {255,255,255;5,82,158} \\pwd ] :> "
+
+
+: \a x y = x
+
+
+: "[ ' ' . \exit(✓, ×) ] >> [ {white;4,56,107} \username() '@' \hostname ] >> [ {255,255,255;5,82,158} \pwd ] :> "
+
+

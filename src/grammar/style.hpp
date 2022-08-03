@@ -1,14 +1,12 @@
 #pragma once
 
 // custom
-#include "parse_utils.hpp"
-#include "color.hpp"
 #include "segment.hpp"
 #include "function.hpp"
 
 // cpp
-#include <vector>
-#include <ostream>
+#include <vector>       // vector
+#include <ostream>      // ostream
 
 
 struct style

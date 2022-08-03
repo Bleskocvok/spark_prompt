@@ -2,7 +2,6 @@
 #include "style.hpp"
 #include "color.hpp"
 #include "utils.hpp"
-#include "parse_utils.hpp"
 #include "function.hpp"
 #include "standard.hpp"
 #include "parse.hpp"
@@ -78,10 +77,10 @@ int main(int argc, char** argv)
 
     auto r = parse_style(pr, funcs);
 
-    if (const auto* err = std::get_if<error>(&r))
+    if (const auto* err = std::get_if<parse_error>(&r))
     {
         if (!validate)
-            return std::cout << "error: " << *err << " |> " << "\n", 1;
+            return std::cout << "error: " << err->msg << " |> " << "\n", 1;
 
         // bool use_color = isatty(STDOUT_FILENO);
         bool use_color = true;
@@ -95,8 +94,7 @@ int main(int argc, char** argv)
         std::cout << (use_color ? fg_color(bit3::red, "^~~") : "^~~"s) << "\n";
 
         std::cout << "error (" << idx << "): "
-                  << (use_color ? fg_color(bit3::red, err->message())
-                                : err->message())
+                  << (use_color ? fg_color(bit3::red, err->msg) : err->msg)
                   << "\n";
         return 1;
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 // custom
-#include "parse_utils.hpp"
+#include "parsed.hpp"
 #include "style.hpp"
 #include "function.hpp"
 
@@ -9,6 +9,15 @@
 #include <variant>      // variant
 
 
-std::variant<style, error> parse_style(parsed& pr, functions& funcs);
+struct parse_error
+{
+    size_t line;
+    size_t col;
+
+    std::string msg;
+};
+
+
+std::variant<style, parse_error> parse_style(parsed& pr, functions& funcs);
 
 

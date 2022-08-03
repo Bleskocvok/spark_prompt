@@ -2,6 +2,7 @@
 
 // custom
 #include "utils.hpp"
+#include "unicode.hpp"
 
 // cpp
 #include <utility>      // move
@@ -10,7 +11,7 @@
 #include <vector>       // vector
 
 
-static std::variant<color, error> parse_color(parsed& pr)
+static color parse_color(parsed& pr)
 {
     using namespace std::literals;
     using namespace std::string_literals;
@@ -33,44 +34,44 @@ static std::variant<color, error> parse_color(parsed& pr)
         { "reset",   bit3::reset   },
     };
 
-    if (pr.next_one_of(alpha))
+    if (pr.is_next_one_of(alpha))
     {
-        auto str = pr.parse(alpha);
+        auto str = pr.try_string(alpha);
         if (auto it = colors.find(str); it != colors.end())
             return it->second;
-        return error{ "invalid color" };
+        throw parse_exception{ "invalid color" };
     }
 
-    if (pr.next_one_of(num))
+    if (pr.is_next_one_of(num))
     {
         rgb col;
 
-        col.r = std::stoi(pr.parse(num));
-        pr.whitespace();
+        col.r = std::stoi(pr.try_string(num));
+        pr.try_whitespace();
 
-        if (!pr.symbol(rgb_delimiter))
+        if (!pr.try_symbol(rgb_delimiter))
             return col;
-        pr.whitespace();
+        pr.try_whitespace();
 
-        col.g = std::stoi(pr.parse(num));
-        pr.whitespace();
-        if (!pr.symbol(rgb_delimiter))
+        col.g = std::stoi(pr.try_string(num));
+        pr.try_whitespace();
+        if (!pr.try_symbol(rgb_delimiter))
             return col;
 
-        pr.whitespace();
-        col.b = std::stoi(pr.parse(num));
+        pr.try_whitespace();
+        col.b = std::stoi(pr.try_string(num));
         return col;
     }
 
-    if (pr.symbol(hash))
+    if (pr.try_symbol(hash))
     {
-        auto num = pr.parse(hexnum);
+        auto num = pr.try_string(hexnum);
         if (num.empty())
-            return error{ "hex number cannot be empty" };
+            throw parse_exception{ "hex number cannot be empty" };
 
         int dec = hex_to_dec(num);
         if (dec < 0 || dec > 256 * 256 * 256)
-            return error{ "invalid hex color" };
+            throw parse_exception{ "invalid hex color" };
 
         uint8_t b = dec % 256;
         uint8_t g = (dec /= 256) % 256;
@@ -78,53 +79,46 @@ static std::variant<color, error> parse_color(parsed& pr)
         return rgb{ r, g, b };
     }
 
-    return error{ "invalid color" };
+    throw parse_exception{ "invalid color" };
 }
 
 
-static std::variant<theme, error> parse_theme(parsed& pr)
+static theme parse_theme(parsed& pr)
 {
     static const char sep = ';';
 
-    pr.whitespace();
+    pr.try_whitespace();
 
-    auto col = parse_color(pr);
-    if (const error* err = std::get_if<error>(&col))
-        return *err;
+    color fg = parse_color(pr);
 
-    color fg = std::get<color>(col);
+    pr.try_whitespace();
 
-    pr.whitespace();
+    if (!pr.try_symbol(sep))
+        throw parse_exception{ "expected ;" };
 
-    if (!pr.symbol(sep))
-        return error{ "expected ;" };
+    pr.try_whitespace();
 
-    pr.whitespace();
+    color bg = parse_color(pr);
 
-    col = parse_color(pr);
-
-    if (const error* err = std::get_if<error>(&col))
-        return *err;
-
-    color bg = std::get<color>(col);
+    // TODO: parse effect
 
     return theme{ fg, bg, effect::none };
 }
 
 
-static std::variant<segment, error> parse_def(parsed& pr, functions& funcs)
+static segment parse_def(parsed& pr, functions& funcs)
 {
-    return error{ "not implt" };
+    throw parse_exception{ "not implt" };
 }
 
 
-static std::variant<std::string, error> parse_func(parsed& pr, functions& funcs)
+static std::string parse_func(parsed& pr, functions& funcs)
 {
-    return error{ "not implt" };
+    throw parse_exception{ "not implt" };
 }
 
 
-static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
+static segment parse_segment(parsed& pr, functions& funcs)
 {
     using namespace std::literals;
     using namespace std::string_literals;
@@ -137,84 +131,77 @@ static std::variant<segment, error> parse_segment(parsed& pr, functions& funcs)
 
     segment result{};
 
-    pr.whitespace();
+    pr.try_whitespace();
 
-    if (!pr.symbol(seg_open))
-        return error{ "expected "s + seg_open };
+    pr.symbol(seg_open);
 
-    pr.whitespace();
+    pr.try_whitespace();
 
-    while (!pr.symbol(seg_close))
+    while (!pr.try_symbol(seg_close))
     {
-        pr.whitespace();
+        pr.try_whitespace();
 
         if (pr.empty())
         {
-            return error{ "end reached, but expected "s + seg_close };
+            throw parse_exception{ "end reached, but expected "s + seg_close };
         }
-        else if (pr.symbol('\\'))
+        else if (pr.try_symbol('\\'))
         {
-            auto func = pr.parse(alpha);
+            auto func = pr.string(alpha);
             auto args = std::vector<std::string>{};
 
-            if (pr.symbol(fun_open))
+            if (pr.try_symbol(fun_open))
             {
-                while (!pr.symbol(fun_close) && !pr.empty())
+                while (!pr.try_symbol(fun_close) && !pr.empty())
                 {
-                    pr.whitespace();
-                    auto arg = pr.until_one_of("),");
-                    pr.symbol(',');  // consume comma
+                    pr.try_whitespace();
+                    auto arg = pr.try_until("),");
+                    pr.try_symbol(',');  // consume comma
                     args.push_back(std::move(arg));
                 }
             }
 
             auto ret = funcs.call(func, result, std::move(args));
             if (const auto* err = std::get_if<func::f_err>(&ret))
-                return error{ err->msg };
+                throw parse_exception{ err->msg };
 
             result.str += std::get<std::string>(ret);
         }
-        else if (pr.symbol('~'))
+        else if (pr.try_symbol('~'))
         {
             result.str += ' ';
         }
-        else if (pr.symbol('\''))
+        else if (pr.try_symbol('\''))
         {
-            auto str = pr.until('\'');
+            auto str = pr.try_until("'");
             result.str += str;
         }
-        else if (pr.symbol('"'))
+        else if (pr.try_symbol('"'))
         {
-            auto str = pr.until('"');
+            auto str = pr.try_until("\"");
             result.str += str;
         }
-        else if (pr.symbol('{'))
+        else if (pr.try_symbol('{'))
         {
-            auto res = parse_theme(pr);
+            result.th = parse_theme(pr);
 
-            if (const error* err = std::get_if<error>(&res))
-                return *err;
+            pr.try_whitespace();
 
-            pr.whitespace();
-
-            if (!pr.symbol('}'))
-                return error{ "expected closing }" };
-
-            result.th = std::get<theme>(res);
+            pr.symbol('}');
         }
         else
         {
-            return error{ "invalid token" };
+            throw parse_exception{ "invalid token" };
         }
 
-        pr.whitespace();
+        // pr.try_whitespace();
     }
 
     return result;
 }
 
 
-static std::variant<sep, error> parse_sep(parsed& pr)
+static sep parse_sep(parsed& pr)
 {
     static auto map = std::map<std::string, sep>
     {
@@ -229,54 +216,52 @@ static std::variant<sep, error> parse_sep(parsed& pr)
         { "<<",  sep::rpowerline_space },
     };
 
-    auto between = pr.parse(":><n\\");
+    auto between = pr.try_string(":><n~\\");
     auto found = map.find(between);
     if (found == map.end())
-        return error{ "invalid separator" };
+        throw parse_exception{ "invalid separator" };
 
     return found->second;
 }
 
 
-static std::variant<std::vector<segment>, error> parse_segments(parsed& pr,
-                                                               functions& funcs)
+static std::vector<segment> parse_segments(parsed& pr, functions& funcs)
 {
     auto result = std::vector<segment>{};
 
     while (!pr.empty())
     {
-        auto var = parse_segment(pr, funcs);
-        if (const error* err = std::get_if<error>(&var))
-            return *err;
-        auto seg = std::get<segment>(var);
+        segment seg = parse_segment(pr, funcs);
 
-        pr.whitespace();
+        pr.try_whitespace();
 
-        auto end = parse_sep(pr);
-        if (const error* err = std::get_if<error>(&end))
-            return *err;
-        seg.end = std::get<sep>(end);
+        seg.end = parse_sep(pr);
 
-        pr.whitespace();
+        pr.try_whitespace();
 
-        if (pr.parse("~") == "~~")
+        if (pr.try_string("|") == "||")
             seg.h_space = true;
 
         result.push_back(std::move(seg));
 
-        // end if found
-        pr.symbol('|');
+        // // end if found
+        // pr.try_symbol('|');
     }
     return result;
 }
 
 
-std::variant<style, error> parse_style(parsed& pr, functions& funcs)
+std::variant<style, parse_error> parse_style(parsed& pr, functions& funcs)
 {
-    auto r = parse_segments(pr, funcs);
-    if (const auto* err = std::get_if<error>(&r))
-        return *err;
-
-    return style{ std::move(std::get<std::vector<segment>>(r)) };
+    try
+    {
+        auto seg = parse_segments(pr, funcs);
+        return style{ std::move(seg) };
+    }
+    catch (parse_exception& ex)
+    {
+        // TODO: add line, col
+        return parse_error{ 0, 0, std::move(ex.msg) };
+    }
 }
 

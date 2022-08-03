@@ -4,7 +4,7 @@
 #include <ostream>      // ostream
 
 // linux
-#include <sys/ioctl.h>
+#include <sys/ioctl.h>  // ioctl
 
 
 template<typename It>
