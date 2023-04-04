@@ -1,5 +1,5 @@
 
-#include "grammar/tree.hpp"
+#include "grammar/parsing.hpp"
 
 
 #include <iostream>
@@ -34,45 +34,42 @@ struct neco_t
 // };
 
 
+namespace std
+{
+    template<typename T>
+    std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
+    {
+        out << "[";
+
+        const char* sep = "";
+        for (const auto& val : vec)
+        {
+            out << sep << val;
+            sep = ",";
+        }
+
+        return out << "]";
+    }
+}
+
+
 int main()
 {
-    // auto a = maybe<int>(5);
-    // auto b = a
-    //         .and_then([](auto i) -> maybe<std::string>
-    //                 {
-    //                     if (i == 4)
-    //                         return { fail{ "ahoj" } };
-    //                     return { std::string{ "ahoj" } };
-    //                 })
-    //         .fmap([](const auto&)
-    //                 {
-    //                     return 8;
-    //                 });
-
-    // std::cout << b.get() << std::endl;
-
-    // int n = 0;
-    // auto lam = curry(func, n, 2, 3);
-    // std::cout << lam << std::endl;
-    // std::cout << n << std::endl;
-
-    // {
-    //     auto tup = std::make_tuple(1, 2, 3);
-    //     auto res = curry_tuple(func, tup);
-
-    //     // res.sdadsad();
-
-    //     // std::cout << res << std::endl;
-    // }
-
     {
-        auto borek = p_build<neco_t, p_char, p_char, p_char>( p_char{ 'a' },
-                                                              p_char{ 'b' },
-                                                              p_char{ 'c' } );
+        auto borek = p_many
+        {
+            p_one_of{ { 'a', 'b', 'c' } },
+        };
         // auto borek = p_build<neco_t, p_char>( p_char{ 'a' } );
-        auto in = input("abc");
+        auto in = input("");
         auto mby = borek(in);
-        std::cout << mby.good() << std::endl;
+
+        auto print = [](const auto& thing)
+        {
+            std::cout << std::boolalpha << thing << std::endl;
+        };
+
+        mby.visit(print, print);
     }
 
     // {
