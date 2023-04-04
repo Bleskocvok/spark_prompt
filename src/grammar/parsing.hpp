@@ -5,7 +5,6 @@
 
 #include <string>       // string
 #include <vector>       // vector
-#include <utility>      // declval, move, forward
 #include <functional>   // invoke, forward, ref
 #include <type_traits>  // remove_cv, remove_reference, invoke_result,
                         // is_invocable_v, is_constructible
@@ -13,6 +12,7 @@
 #include <set>          // set
 #include <sstream>      // stringstream
 #include <ostream>      // ostream
+#include <utility>      // declval, move, forward, pair
 #include <tuple>        // tuple, tuple_size_v, get
 #include <stdexcept>    // runtime_error
 #include <cctype>       // isdigit, isspace
@@ -25,6 +25,9 @@ struct input;
 
 template<typename T>
 struct maybe;
+
+template<typename F2, typename A, typename B>
+auto lift2(F2&& f2, A&& a, B&& b) -> maybe<decltype(f2(a.get(), b.get()))>;
 
 
 //
@@ -44,13 +47,16 @@ template<typename Pred>
 struct p_one_pred;
 
 template<typename B, typename T, typename E>
-struct p_between;
+struct p_between;   // B  *>  T  <*  E
 
-template<typename Prefix, typename Parser>
+template<typename A, typename B>
 struct p_after;
 
-template<typename Prefix, typename Parser>
-struct p_before;
+template<typename B, typename T>
+struct p_prefixed;  // B  *>  T
+
+template<typename T, typename B>
+struct p_suffixed;  // T  <*  B
 
 template<typename P>
 struct p_many;
@@ -81,6 +87,36 @@ struct fail
     friend std::ostream& operator<<(std::ostream& out, const fail& f)
     {
         return out << f.msg;
+    }
+};
+
+
+
+class input
+{
+    std::string_view str;
+    std::string_view start;
+
+public:
+    input(std::string_view str) : str(str), start(str) {}
+
+    bool end()  const { return str.empty(); }
+    bool good() const { return !end(); }
+
+    operator bool() const { return good(); }
+
+    char peek() const { return str.front(); }
+
+    char eat()
+    {
+        char c = str.front();
+        str.remove_prefix(1);
+        return c;
+    }
+
+    std::size_t consumed() const
+    {
+        return start.length() - str.length();
     }
 };
 
@@ -147,33 +183,20 @@ struct maybe
 
 
 
-class input
+
+// TODO: enable_if only if A, B are maybe types
+template<typename F2, typename A, typename B>
+auto lift2(F2&& f2, A&& a, B&& b) -> maybe<decltype(f2(a.get(), b.get()))>
 {
-    std::string_view str;
-    std::string_view start;
+    if (!a)
+        return a.get_fail();
 
-public:
-    input(std::string_view str) : str(str), start(str) {}
+    if (!b)
+        return b.get_fail();
 
-    bool end()  const { return str.empty(); }
-    bool good() const { return !end(); }
-
-    operator bool() const { return good(); }
-
-    char peek() const { return str.front(); }
-
-    char eat()
-    {
-        char c = str.front();
-        str.remove_prefix(1);
-        return c;
-    }
-
-    std::size_t consumed() const
-    {
-        return start.length() - str.length();
-    }
-};
+    return std::invoke(std::forward<A::value_type>(a.get()),
+                       std::forward<B::value_type>(b.get()));
+}
 
 
 
@@ -525,3 +548,51 @@ struct p_space1 : p_parser<std::vector<char>>
         return r;
     }
 };
+
+
+
+template<typename A, typename B>
+struct p_after : p_parser<std::pair<typename A::value_type,
+                                    typename B::value_type>>
+{
+    A first;
+    B second;
+
+    auto operator()(input& in)
+    {
+        auto a = first(in);
+        auto b = second(in);
+        return lift2(std::make_pair, std::move(a), std::move(b));
+    }
+};
+
+
+
+// B  *>  T
+template<typename B, typename T>
+struct p_prefixed : p_parser<typename T::value_type>
+{
+    p_after<B, T> parser;
+
+    auto operator()(input& in) -> maybe<typename T::value_type>
+    {
+        return parser(in)
+            .fmap([](const auto& pair){ return pair.second; });
+    }
+};
+
+
+
+// T  <*  B
+template<typename T, typename B>
+struct p_suffixed : p_parser<typename T::value_type>
+{
+    p_after<T, B> parser;
+
+    auto operator()(input& in) -> maybe<typename T::value_type>
+    {
+        return parser(in)
+            .fmap([](const auto& pair){ return pair.first; });
+    }
+};
+
