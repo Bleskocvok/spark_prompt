@@ -1,5 +1,6 @@
 
 #include "grammar/parsing.hpp"
+#include "grammar/grammar.hpp"
 
 
 #include <iostream>
@@ -34,24 +35,6 @@ struct neco_t
 // };
 
 
-namespace std
-{
-    template<typename T>
-    std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
-    {
-        out << "[";
-
-        const char* sep = "";
-        for (const auto& val : vec)
-        {
-            out << sep << val;
-            sep = ",";
-        }
-
-        return out << "]";
-    }
-}
-
 
 int main()
 {
@@ -78,6 +61,8 @@ int main()
     //     auto dummy = std::make_tuple(1);
     //     neco_t res = std::pair<neco_t, int>(std::piecewise_construct, tup, dummy).first;
     // }
+
+    std::cout << literal_color(rgb{ 255, 128, 0 }) << std::endl;
 
     return 0;
 }

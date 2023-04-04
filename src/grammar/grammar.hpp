@@ -5,10 +5,35 @@
 
 #include <memory>       // shared_ptr
 #include <vector>       // vector
-#include <variant>      // variant
+#include <variant>      // variant, visit
 #include <string>       // string
 #include <cstdint>      // uint8_t
 #include <utility>      // move
+#include <ostream>      // ostream
+
+#include <iomanip>      // setw, setfill
+#include <ios>          // hex
+
+
+
+namespace std
+{
+    template<typename T>
+    std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
+    {
+        out << "[";
+
+        const char* sep = "";
+        for (const auto& val : vec)
+        {
+            out << sep << val;
+            sep = ",";
+        }
+
+        return out << "]";
+    }
+}
+
 
 
 struct rgb
@@ -55,36 +80,70 @@ struct literal_string
 {
     std::string data;
     literal_string(std::string data) : data(std::move(data)) {}
+
+    friend std::ostream& operator<<(std::ostream& out, const literal_string& a)
+    {
+        return out << "\"" << a.data << "\"";
+    }
 };
 
 struct literal_color
 {
     rgb data;
     literal_color(rgb data) : data(data) {}
+
+    friend std::ostream& operator<<(std::ostream& out, const literal_color& a)
+    {
+        using std::setfill, std::hex, std::setw;
+
+        return out << "#" << setfill('0') << hex << setw(2) << int(a.data.r)
+                          << setfill('0') << hex << setw(2) << int(a.data.g)
+                          << setfill('0') << hex << setw(2) << int(a.data.b);
+    }
 };
 
 struct literal_effect
 {
     effect data;
     literal_effect(effect data) : data(data) {}
+
+    friend std::ostream& operator<<(std::ostream& out, const literal_effect& a)
+    {
+        (void) a;
+        return out;
+    }
 };
 
 struct literal_separator
 {
     sep data;
     literal_separator(sep data) : data(data) {}
+
+    friend std::ostream& operator<<(std::ostream& out,
+                                    const literal_separator& a)
+    {
+        (void) a;
+        return out;
+    }
 };
 
 struct literal_bool
 {
     bool value;
     literal_bool(bool value) : value(value) {}
+
+    friend std::ostream& operator<<(std::ostream& out, const literal_bool& a)
+    {
+        return out << (a.value ? "true" : "false");
+    }
 };
 
 struct composite_color
 {
     std::vector<node_ptr> args;
     composite_color(std::vector<node_ptr> args) : args(std::move(args)) {}
+
+    friend std::ostream& operator<<(std::ostream&, const composite_color&);
 };
 
 struct call
@@ -93,17 +152,48 @@ struct call
     std::vector<node_ptr> args;
     call(std::string name, std::vector<node_ptr> args)
         : name(std::move(name)), args(std::move(args)) {}
+
+    friend std::ostream& operator<<(std::ostream&, const call&);
 };
 
 
-class tree
+
+inline std::ostream& operator<<(std::ostream& out,
+                                const composite_color& a)
 {
-    node_ptr root;
-public:
+    out << "{";
+    const char* sep = "";
+    for (const auto& val : a.args)
+    {
+        out << sep << val;
+        sep = " ";
+    }
+    return out << "}";
+}
 
-};
+
+inline std::ostream& operator<<(std::ostream& out, const call& a)
+{
+    out << "(" << a.name;
+
+    if (!a.args.empty())
+        out << " ";
+
+    const char* sep = "";
+    for (const auto& val : a.args)
+    {
+        out << sep << val;
+        sep = " ";
+    }
+    return out << ")";
+}
 
 
+inline std::ostream& operator<<(std::ostream& out, node_ptr obj)
+{
+    std::visit([&](const auto& val) { out << val; }, *obj);
+    return out;
+}
 
 // struct literal_string;
 // struct literal_color;
