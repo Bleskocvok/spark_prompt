@@ -39,6 +39,7 @@ struct p_parser;
 struct p_char;
 struct p_string;
 struct p_alpha_str;
+struct p_quoted;
 struct p_one_of;
 struct p_unsigned;
 struct p_space;
@@ -675,3 +676,58 @@ struct p_try_seq : p_parser<Result>
         return try_from_nth(in, parsers);
     }
 };
+
+
+
+struct p_quoted : p_parser<std::string>
+{
+    char quote = '"';
+    char escape = '\\';
+
+    p_quoted() = default;
+    p_quoted(char quote, char escape) : quote(quote), escape(escape) {}
+
+    maybe<std::string> operator()(input& in)
+    {
+        auto get_got = [&]()
+        {
+            return !in.good() ? std::string("EOF")
+                              : (std::string("'") += in.peek()) += "'";
+        };
+
+        if (in.end() || in.peek() != quote)
+            return fail("expected opening '", quote, "', got ", get_got());
+
+        // eat opening quote
+        in.eat();
+
+        auto result = std::string{};
+        bool escaped = false;
+
+        while (in.good())
+        {
+            if (!escaped && in.peek() == quote)
+                break;
+
+            if (in.peek() == escape)
+            {
+                escaped = !escaped;
+                in.eat();
+            }
+            else
+            {
+                result += in.eat();
+                escaped = false;
+            }
+        }
+
+        if (in.end() || in.peek() != quote)
+            return fail("expected closing '", quote, "', got ", get_got());
+
+        // eat closing quote
+        in.eat();
+
+        return result;
+    }
+};
+

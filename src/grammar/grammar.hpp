@@ -11,7 +11,7 @@
 #include <utility>      // move
 #include <ostream>      // ostream
 
-#include <iomanip>      // setw, setfill
+#include <iomanip>      // setw, setfill, quoted
 #include <ios>          // hex
 
 
@@ -94,7 +94,7 @@ struct literal_string
 
     friend std::ostream& operator<<(std::ostream& out, const literal_string& a)
     {
-        return out << "\"" << a.data << "\"";
+        return out << std::quoted(a.data, '"', '\\');
     }
 };
 
@@ -210,9 +210,9 @@ inline std::ostream& operator<<(std::ostream& out, node_ptr obj)
 
 struct p_literal_string : p_parser<node_ptr>
 {
-    p_between<p_char, p_alpha_str, p_char> parser;
+    p_quoted parser;
 
-    p_literal_string() : parser(p_char{ '"' }, p_alpha_str{ 1 }, p_char{ '"' })
+    p_literal_string() : parser('"', '\\')
     { }
 
     maybe<node_ptr> operator()(input& in)
