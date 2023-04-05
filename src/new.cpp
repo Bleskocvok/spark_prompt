@@ -39,12 +39,8 @@ struct neco_t
 int main()
 {
     {
-        auto borek = p_many
-        {
-            p_one_of{ { 'a', 'b', 'c' } },
-        };
-        // auto borek = p_build<neco_t, p_char>( p_char{ 'a' } );
-        auto in = input("");
+        auto borek = p_node{};
+        auto in = input("\"ahoj");
         auto mby = borek(in);
 
         auto print = [](const auto& thing)
@@ -54,13 +50,6 @@ int main()
 
         mby.visit(print, print);
     }
-
-    // {
-    //     auto tup = std::make_tuple('c', 1);
-    //     // auto res = curry_tuple(neco_t::make, tup);
-    //     auto dummy = std::make_tuple(1);
-    //     neco_t res = std::pair<neco_t, int>(std::piecewise_construct, tup, dummy).first;
-    // }
 
     std::cout << literal_color(rgb{ 255, 128, 0 }) << std::endl;
 

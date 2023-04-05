@@ -38,6 +38,7 @@ struct p_parser;
 
 struct p_char;
 struct p_string;
+struct p_alpha_str;
 struct p_one_of;
 struct p_unsigned;
 struct p_space;
@@ -63,6 +64,9 @@ struct p_many;
 
 template<typename Result, typename ... Parsers>
 struct p_build;
+
+template<typename Result, typename ... Parsers>
+struct p_try_seq;
 
 
 
@@ -218,6 +222,12 @@ struct is_digit
 };
 
 
+struct is_alpha
+{
+    bool operator()(unsigned char c) const { return (c >= 'a' && c <= 'z')
+                                                 || (c >= 'A' && c <= 'Z'); }
+};
+
 
 // -----------------------------------------------------------------------------
 // PARSERS
@@ -228,6 +238,7 @@ struct is_digit
 template<typename T>
 struct p_parser
 {
+    // typedef  T  value_type;
     using value_type = T;
 
 protected:
@@ -295,6 +306,8 @@ template<typename Pred>
 struct p_one_pred : p_parser<char>
 {
     Pred pred;
+
+    p_one_pred() = default;
 
     p_one_pred(Pred&& pred) : pred(std::forward<Pred>(pred))
     { }
@@ -393,9 +406,14 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
     using value_type = std::vector<chunk>;
 
     P thing;
+    unsigned min_count = 0;
 
-    p_many(P p)
-        : thing(std::move(p))
+    p_many() = default;
+
+    p_many(unsigned min_count) : thing(), min_count(min_count) {}
+
+    p_many(P p, unsigned min_count = 0)
+        : thing(std::move(p)), min_count(min_count)
     { }
 
     maybe<value_type> operator()(input& in)
@@ -427,6 +445,10 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
 
             prev_read = read;
         }
+
+        if (result.size() < min_count)
+            return fail("p_many parsed only ", result.size(),
+                        " while expecting at least ", min_count);
 
         return result;
     }
@@ -596,3 +618,60 @@ struct p_suffixed : p_parser<typename T::value_type>
     }
 };
 
+
+
+struct p_alpha_str : p_parser<std::string>
+{
+    p_many<p_one_pred<is_alpha>> parser;
+
+    p_alpha_str(unsigned min_len = 0) : parser(min_len)
+    { }
+
+    maybe<std::string> operator()(input& in)
+    {
+        return parser(in).fmap([](auto vec)
+        {
+            return std::string(vec.begin(), vec.end());
+        });
+    }
+};
+
+
+
+template<typename Result, typename ... Parsers>
+struct p_try_seq : p_parser<Result>
+{
+    std::tuple<Parsers...> parsers;
+
+    p_try_seq() : parsers() {}
+
+    p_try_seq(Parsers&&... parsers)
+        : parsers(std::forward<Parsers>(parsers)...) {}
+
+    template<int N = 0>
+    static maybe<Result> try_from_nth(input& in,
+                                      std::tuple<Parsers...>& parsers)
+    {
+        if constexpr (N < sizeof...(Parsers))
+        {
+            auto prev = in.consumed();
+            auto res = std::get<N>(parsers)(in);
+            if (res)
+                return res.get();
+
+            // this parser consumed some input
+            if (in.consumed() > prev)
+                return res.get_fail();
+
+            return try_from_nth<N + 1>(in, parsers);
+        }
+
+        // TODO: improve this error message
+        return fail("expected one of [...], but none succeeded");
+    }
+
+    maybe<Result> operator()(input& in)
+    {
+        return try_from_nth(in, parsers);
+    }
+};

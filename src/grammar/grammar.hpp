@@ -3,7 +3,7 @@
 
 #include "parsing.hpp"
 
-#include <memory>       // shared_ptr
+#include <memory>       // shared_ptr, make_shared
 #include <vector>       // vector
 #include <variant>      // variant, visit
 #include <string>       // string
@@ -74,6 +74,17 @@ using node = std::variant<literal_string, literal_color, literal_effect,
                           literal_separator, literal_bool, composite_color,
                           call>;
 using node_ptr = std::shared_ptr<node>;
+
+
+// parsers
+struct p_literal_string;
+struct p_literal_color;
+struct p_literal_effect;
+struct p_literal_separator;
+struct p_literal_bool;
+struct p_composite_color;
+struct p_call;
+using p_node = p_try_seq<node_ptr, p_literal_string>;
 
 
 struct literal_string
@@ -195,11 +206,52 @@ inline std::ostream& operator<<(std::ostream& out, node_ptr obj)
     return out;
 }
 
-// struct literal_string;
-// struct literal_color;
-// struct literal_effect;
-// struct literal_separator;
-// struct literal_bool;
-// struct composite_color;
-// struct call;
+
+
+struct p_literal_string : p_parser<node_ptr>
+{
+    p_between<p_char, p_alpha_str, p_char> parser;
+
+    p_literal_string() : parser(p_char{ '"' }, p_alpha_str{ 1 }, p_char{ '"' })
+    { }
+
+    maybe<node_ptr> operator()(input& in)
+    {
+        return parser(in)
+            .fmap([](auto str)
+            {
+                return std::make_shared<node>(literal_string(std::move(str)));
+            });
+    }
+};
+
+struct p_literal_color : p_parser<node_ptr>
+{
+
+};
+
+struct p_literal_effect : p_parser<node_ptr>
+{
+
+};
+
+struct p_literal_separator : p_parser<node_ptr>
+{
+
+};
+
+struct p_literal_bool : p_parser<node_ptr>
+{
+
+};
+
+struct p_composite_color : p_parser<node_ptr>
+{
+
+};
+
+struct p_call : p_parser<node_ptr>
+{
+
+};
 
