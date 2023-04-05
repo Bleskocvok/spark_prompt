@@ -7,7 +7,9 @@
 #include <vector>       // vector
 #include <variant>      // variant, visit
 #include <string>       // string
+#include <array>        // array
 #include <cstdint>      // uint8_t
+#include <cassert>      // assert
 #include <utility>      // move
 #include <ostream>      // ostream
 
@@ -228,7 +230,34 @@ struct p_literal_string : p_parser<node_ptr>
 
 struct p_literal_color : p_parser<node_ptr>
 {
+    p_prefixed<p_char, p_many<p_one_pred<is_hex>>> parser;
 
+    p_literal_color() : parser(p_char('#'), {})
+    { }
+
+    maybe<node_ptr> operator()(input& in)
+    {
+        static constexpr auto hex_to_dec = []() -> std::array<int, 256>
+        {
+            auto t = std::array<int, 256>{ 0 };
+            t['0'] =  0; t['1'] =  1; t['2'] =  2; t['3'] =  3; t['4'] =  4;
+            t['5'] =  5; t['6'] =  6; t['7'] =  7; t['8'] =  8; t['9'] =  9;
+            t['a'] = 10; t['b'] = 11; t['c'] = 12; t['d'] = 13; t['e'] = 14;
+            t['f'] = 15;
+            t['A'] = 10; t['B'] = 11; t['C'] = 12; t['D'] = 13; t['E'] = 14;
+            t['F'] = 15;
+            return t;
+        }();
+
+        return parser(in)
+            .fmap([&](auto vec)
+            {
+                assert(vec.size() == 6);
+                rgb color;
+                color.r = hex_to_dec[vec[0]];
+                return std::make_shared<node>(literal_color(color));
+            });
+    }
 };
 
 struct p_literal_effect : p_parser<node_ptr>

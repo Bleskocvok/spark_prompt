@@ -7,7 +7,7 @@
 #include <vector>       // vector
 #include <functional>   // invoke, forward, ref
 #include <type_traits>  // remove_cv, remove_reference, invoke_result,
-                        // is_invocable_v, is_constructible
+                        // is_invocable_v, is_constructible, decay_t
 #include <string_view>  // string_view
 #include <set>          // set
 #include <sstream>      // stringstream
@@ -26,8 +26,11 @@ struct input;
 template<typename T>
 struct maybe;
 
+// cool type, bro
 template<typename F2, typename A, typename B>
-auto lift2(F2&& f2, A&& a, B&& b) -> maybe<decltype(f2(a.get(), b.get()))>;
+auto lift2(F2&& f2, A&& a, B&& b)
+    -> maybe<decltype(f2(std::forward<typename A::value_type>(a.get()),
+                         std::forward<typename B::value_type>(b.get())))>;
 
 
 //
@@ -190,8 +193,11 @@ struct maybe
 
 
 // TODO: enable_if only if A, B are maybe types
+// TODO: add generic lift(Fn fn, Args... args)
 template<typename F2, typename A, typename B>
-auto lift2(F2&& f2, A&& a, B&& b) -> maybe<decltype(f2(a.get(), b.get()))>
+auto lift2(F2&& f2, A&& a, B&& b)
+    -> maybe<decltype(f2(std::forward<typename A::value_type>(a.get()),
+                         std::forward<typename B::value_type>(b.get())))>
 {
     if (!a)
         return a.get_fail();
@@ -199,8 +205,9 @@ auto lift2(F2&& f2, A&& a, B&& b) -> maybe<decltype(f2(a.get(), b.get()))>
     if (!b)
         return b.get_fail();
 
-    return std::invoke(std::forward<A::value_type>(a.get()),
-                       std::forward<B::value_type>(b.get()));
+    return std::invoke(std::forward<F2>(f2),
+                       std::forward<typename A::value_type>(a.get()),
+                       std::forward<typename B::value_type>(b.get()));
 }
 
 
@@ -228,6 +235,15 @@ struct is_alpha
     bool operator()(unsigned char c) const { return (c >= 'a' && c <= 'z')
                                                  || (c >= 'A' && c <= 'Z'); }
 };
+
+
+struct is_hex
+{
+    bool operator()(unsigned char c) const { return (c >= 'a' && c <= 'f')
+                                                 || (c >= 'A' && c <= 'F')
+                                                 || (c >= '0' && c <= '9'); }
+};
+
 
 
 // -----------------------------------------------------------------------------
@@ -407,14 +423,16 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
     using value_type = std::vector<chunk>;
 
     P thing;
-    unsigned min_count = 0;
+    std::size_t min_count = 0;
+    std::size_t max_count = 0;
 
     p_many() = default;
 
-    p_many(unsigned min_count) : thing(), min_count(min_count) {}
+    p_many(std::size_t min_count, std::size_t max_count = 0)
+        : thing(), min_count(min_count), max_count(max_count) {}
 
-    p_many(P p, unsigned min_count = 0)
-        : thing(std::move(p)), min_count(min_count)
+    p_many(P p, std::size_t min_count = 0, std::size_t max_count = 0)
+        : thing(std::move(p)), min_count(min_count), max_count(max_count)
     { }
 
     maybe<value_type> operator()(input& in)
@@ -450,6 +468,10 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
         if (result.size() < min_count)
             return fail("p_many parsed only ", result.size(),
                         " while expecting at least ", min_count);
+
+        if (result.size() > max_count)
+            return fail("p_many parsed ", result.size(),
+                        " while expecting at most ", max_count);
 
         return result;
     }
@@ -581,11 +603,16 @@ struct p_after : p_parser<std::pair<typename A::value_type,
     A first;
     B second;
 
+    p_after(A first, B second)
+        : first(std::move(first)), second(std::move(second)) {}
+
     auto operator()(input& in)
     {
         auto a = first(in);
         auto b = second(in);
-        return lift2(std::make_pair, std::move(a), std::move(b));
+        return lift2(std::make_pair<typename A::value_type,
+                                    typename B::value_type>,
+                     std::move(a), std::move(b));
     }
 };
 
@@ -596,6 +623,9 @@ template<typename B, typename T>
 struct p_prefixed : p_parser<typename T::value_type>
 {
     p_after<B, T> parser;
+
+    p_prefixed(B b, T t) : parser(std::move(b), std::move(t)) {}
+    p_prefixed() = default;
 
     auto operator()(input& in) -> maybe<typename T::value_type>
     {
@@ -611,6 +641,9 @@ template<typename T, typename B>
 struct p_suffixed : p_parser<typename T::value_type>
 {
     p_after<T, B> parser;
+
+    p_suffixed(T t, B b) : parser(std::move(t), std::move(b)) {}
+    p_suffixed() = default;
 
     auto operator()(input& in) -> maybe<typename T::value_type>
     {
