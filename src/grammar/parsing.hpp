@@ -711,6 +711,9 @@ struct p_quoted : p_parser<std::string>
 
             if (in.peek() == escape)
             {
+                if (escaped)
+                    result += escape;
+
                 escaped = !escaped;
                 in.eat();
             }

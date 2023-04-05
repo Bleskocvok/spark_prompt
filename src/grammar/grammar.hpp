@@ -210,9 +210,10 @@ inline std::ostream& operator<<(std::ostream& out, node_ptr obj)
 
 struct p_literal_string : p_parser<node_ptr>
 {
-    p_quoted parser;
+    p_try_seq<std::string, p_quoted, p_quoted> parser;
 
-    p_literal_string() : parser('"', '\\')
+    p_literal_string() : parser{ p_quoted('"',  '\\'),
+                                 p_quoted('\'', '\\') }
     { }
 
     maybe<node_ptr> operator()(input& in)

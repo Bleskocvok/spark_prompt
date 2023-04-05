@@ -40,7 +40,7 @@ int main()
 {
     {
         auto borek = p_node{};
-        auto in = input("\"ah\\\"oj\"");
+        auto in = input("'ah \\\\ \" oj'");
         auto mby = borek(in);
 
         auto print = [](const auto& thing)
