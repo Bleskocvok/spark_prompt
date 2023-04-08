@@ -70,11 +70,12 @@ struct literal_effect;
 struct literal_separator;
 struct literal_bool;
 struct composite_color;
+struct composite_segment;
 struct call;
 
 using node = std::variant<literal_string, literal_color, literal_effect,
                           literal_separator, literal_bool, composite_color,
-                          call>;
+                          composite_segment, call>;
 using node_ptr = std::shared_ptr<node>;
 
 
@@ -87,6 +88,7 @@ struct p_literal_effect;
 struct p_literal_separator;
 struct p_literal_bool;
 struct p_composite_color;
+struct p_composite_segment;
 struct p_call;
 
 
@@ -94,6 +96,28 @@ template<typename T, typename... Args>
 node_ptr make_node(Args&&... args)
 {
     return std::make_shared<node>(T(std::forward<Args>(args)...));
+}
+
+
+template<typename Beg,
+         typename End,
+         typename Func,
+         typename T, template<typename> typename Vec>
+std::ostream& print_separated(std::ostream& out,
+                              const Beg& beg,
+                              const End& end,
+                              const Vec<T>& vec,
+                              Func print_elem)
+{
+    out << beg;
+    const char* sep = "";
+    for (const auto& elem : vec)
+    {
+        out << sep;
+        sep = " ";
+        print_elem(elem);
+    }
+    return out << end;
 }
 
 
@@ -166,6 +190,14 @@ struct composite_color
     friend std::ostream& operator<<(std::ostream&, const composite_color&);
 };
 
+struct composite_segment
+{
+    std::vector<node_ptr> args;
+    composite_segment(std::vector<node_ptr> args) : args(std::move(args)) {}
+
+    friend std::ostream& operator<<(std::ostream&, const composite_segment&);
+};
+
 struct call
 {
     std::string name;
@@ -181,15 +213,11 @@ struct call
 inline std::ostream& operator<<(std::ostream& out,
                                 const composite_color& a)
 {
-    out << "{ ";
-    const char* sep = "";
-    for (const auto& ptr : a.args)
-    {
-        out << sep;
-        sep = " ";
-        std::visit([&](const auto& val) { out << val; }, *ptr);
-    }
-    return out << " }";
+    return print_separated(out, "{ ", " }", a.args,
+                [&](const auto& ptr)
+                {
+                    std::visit([&](const auto& val) { out << val; }, *ptr);
+                });
 }
 
 
@@ -200,14 +228,21 @@ inline std::ostream& operator<<(std::ostream& out, const call& a)
     if (!a.args.empty())
         out << " ";
 
-    const char* sep = "";
-    for (const auto& ptr : a.args)
-    {
-        out << sep;
-        sep = " ";
-        std::visit([&](const auto& val) { out << val; }, *ptr);
-    }
-    return out << ")";
+    return print_separated(out, "", ")", a.args,
+                [&](const auto& ptr)
+                {
+                    std::visit([&](const auto& val) { out << val; }, *ptr);
+                });
+}
+
+
+inline std::ostream& operator<<(std::ostream& out, const composite_segment& a)
+{
+    return print_separated(out, "[ ", " ]", a.args,
+                [&](const auto& ptr)
+                {
+                    std::visit([&](const auto& val) { out << val; }, *ptr);
+                });
 }
 
 
@@ -339,6 +374,11 @@ struct p_composite_color : p_parser<node_ptr>
     maybe<node_ptr> operator()(input& in);
 };
 
+struct p_composite_segment : p_parser<node_ptr>
+{
+    maybe<node_ptr> operator()(input& in);
+};
+
 struct p_call : p_parser<node_ptr>
 {
     maybe<node_ptr> operator()(input& in);
@@ -351,11 +391,13 @@ struct p_node : p_parser<node_ptr>
     maybe<node_ptr> operator()(input& in)
     {
         p_spaces_before<p_try_seq<node_ptr,
-                        p_spaces_after<p_literal_string>,
-                        p_spaces_after<p_literal_color>,
-                        p_spaces_after<p_literal_bool>,
-                        p_spaces_after<p_call>,
-                        p_spaces_after<p_composite_color>>
+                                  p_spaces_after<p_literal_string>,
+                                  p_spaces_after<p_literal_color>,
+                                  p_spaces_after<p_literal_bool>,
+                                  p_spaces_after<p_call>,
+                                  p_spaces_after<p_composite_color>,
+                                  p_spaces_after<p_composite_segment>
+                                 >
                         > parser;
 
         return parser(in);
@@ -388,5 +430,18 @@ maybe<node_ptr> p_composite_color::operator()(input& in)
         .fmap([&](auto nodes)
         {
             return make_node<composite_color>(std::move(nodes));
+        });
+}
+
+maybe<node_ptr> p_composite_segment::operator()(input& in)
+{
+    auto parser = p_between<p_char<'['>,
+                            p_many<p_node>,
+                            p_char<']'>>{};
+
+    return parser(in)
+        .fmap([&](auto nodes)
+        {
+            return make_node<composite_segment>(std::move(nodes));
         });
 }

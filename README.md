@@ -24,7 +24,7 @@ syntax example
 
 
 ```
-(segment { #0011FF (rgb 255 0 123) bold } "" >)
+[ { #0011FF (rgb 255 0 123) bold } "" ] :>
 (segment - "" >>)
 (hostname) (pwd) (if (exit) #ffeedd )
 ```

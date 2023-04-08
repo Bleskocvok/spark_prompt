@@ -40,7 +40,7 @@ int main()
 {
     {
         auto borek = p_node{};
-        auto in = input("   (ahoj #ffffff \n (asdhasdaskdk true) { #ff00ff true } ( a) true false 'ahoj' \"lolololo\")");
+        auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) { #ff00ff true } ( a) true false 'ahoj' \"lolololo\") ]   ");
         // auto in = input("( ahoj #ffffff    (a ) (bbbbb (bbb))\n )");
         auto mby = borek(in);
 
