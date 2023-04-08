@@ -78,7 +78,9 @@ using node = std::variant<literal_string, literal_color, literal_effect,
 using node_ptr = std::shared_ptr<node>;
 
 
-// parsers
+// combined parser
+struct p_node;
+// other parsers
 struct p_literal_string;
 struct p_literal_color;
 struct p_literal_effect;
@@ -86,7 +88,6 @@ struct p_literal_separator;
 struct p_literal_bool;
 struct p_composite_color;
 struct p_call;
-using p_node = p_try_seq<node_ptr, p_literal_string>;
 
 
 struct literal_string
@@ -193,10 +194,12 @@ inline std::ostream& operator<<(std::ostream& out, const call& a)
         out << " ";
 
     const char* sep = "";
-    for (const auto& val : a.args)
+    for (const auto& ptr : a.args)
     {
-        out << sep << val;
+        out << sep;
         sep = " ";
+
+        std::visit([&](const auto& val) { out << val; }, *ptr);
     }
     return out << ")";
 }
@@ -232,12 +235,13 @@ struct p_literal_color : p_parser<node_ptr>
 {
     p_prefixed<p_char, p_many<p_one_pred<is_hex>>> parser;
 
-    p_literal_color() : parser(p_char('#'), {})
+    p_literal_color() : parser{ p_char('#'),
+                                p_many<p_one_pred<is_hex>>{ 6, 6 } }
     { }
 
     maybe<node_ptr> operator()(input& in)
     {
-        static constexpr auto hex_to_dec = []() -> std::array<int, 256>
+        constexpr auto hex_to_dec = []() -> std::array<int, 256>
         {
             auto t = std::array<int, 256>{ 0 };
             t['0'] =  0; t['1'] =  1; t['2'] =  2; t['3'] =  3; t['4'] =  4;
@@ -249,12 +253,19 @@ struct p_literal_color : p_parser<node_ptr>
             return t;
         }();
 
+        auto get_hex = [&](char a, char b)
+        {
+            return hex_to_dec[a] * 16 + hex_to_dec[b];
+        };
+
         return parser(in)
             .fmap([&](auto vec)
             {
                 assert(vec.size() == 6);
                 rgb color;
-                color.r = hex_to_dec[vec[0]];
+                color.r = get_hex(vec[0], vec[1]);
+                color.g = get_hex(vec[2], vec[3]);
+                color.b = get_hex(vec[4], vec[5]);
                 return std::make_shared<node>(literal_color(color));
             });
     }
@@ -277,11 +288,47 @@ struct p_literal_bool : p_parser<node_ptr>
 
 struct p_composite_color : p_parser<node_ptr>
 {
-
+    maybe<node_ptr> operator()(input& in);
 };
 
 struct p_call : p_parser<node_ptr>
 {
-
+    maybe<node_ptr> operator()(input& in);
 };
 
+struct p_node : p_parser<node_ptr>
+{
+    p_node() = default;
+
+    maybe<node_ptr> operator()(input& in)
+    {
+        p_try_seq<node_ptr,
+                  p_literal_string,
+                  p_literal_color,
+                  p_call> parser;
+
+        return parser(in);
+    }
+};
+
+
+maybe<node_ptr> p_call::operator()(input& in)
+{
+    auto parser = p_between<p_char,
+                            p_after<p_suffixed<p_alpha_str, p_space>,
+                                    p_many_sep_by<p_node,
+                                                  p_space1>>,
+                            p_char>
+    {
+        p_char{ '(' },
+        { { p_alpha_str{ 1 }, {} }, {} },
+        p_char{ ')' },
+    };
+
+    return parser(in)
+        .fmap([&](auto pair)
+        {
+            return std::make_shared<node>(call(pair.first,
+                                                std::move(pair.second)));
+        });
+}

@@ -21,11 +21,11 @@ int func(int& a, int b, int c)
 // };
 
 
-struct neco_t
-{
-    char a, b, c;
-    neco_t(char a, char b, char c) : a(a), b(b), c(c) {}
-};
+// struct neco_t
+// {
+//     char a, b, c;
+//     neco_t(char a, char b, char c) : a(a), b(b), c(c) {}
+// };
 
 
 // struct neco_t
@@ -40,7 +40,7 @@ int main()
 {
     {
         auto borek = p_node{};
-        auto in = input("'ah \\\\ \" oj'");
+        auto in = input("(ahoj #ffffff \n (asdhasdaskdk) 'ahoj' \"lolololo\")");
         auto mby = borek(in);
 
         auto print = [](const auto& thing)

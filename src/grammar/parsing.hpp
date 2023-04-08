@@ -66,6 +66,9 @@ struct p_suffixed;  // T  <*  B
 template<typename P>
 struct p_many;
 
+template<typename P, typename Sep>
+struct p_many_sep_by;
+
 template<typename Result, typename ... Parsers>
 struct p_build;
 
@@ -365,9 +368,9 @@ struct p_one_of : p_parser<char>
 struct p_string : p_parser<std::string>
 {
     std::set<char> allowed;
-    unsigned min_len = 0;
+    std::size_t min_len = 0;
 
-    p_string(std::set<char> allowed, unsigned min_len = 0)
+    p_string(std::set<char> allowed, std::size_t min_len = 0)
         : allowed(std::move(allowed)), min_len(min_len)
     { }
 
@@ -424,14 +427,14 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
 
     P thing;
     std::size_t min_count = 0;
-    std::size_t max_count = 0;
+    std::size_t max_count = -1;
 
     p_many() = default;
 
-    p_many(std::size_t min_count, std::size_t max_count = 0)
+    p_many(std::size_t min_count, std::size_t max_count = -1)
         : thing(), min_count(min_count), max_count(max_count) {}
 
-    p_many(P p, std::size_t min_count = 0, std::size_t max_count = 0)
+    p_many(P p, std::size_t min_count = 0, std::size_t max_count = -1)
         : thing(std::move(p)), min_count(min_count), max_count(max_count)
     { }
 
@@ -453,18 +456,19 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
                     return parsed.get_fail();
 
                 // otherwise
-                return result;
+                break;
             }
 
             result.push_back(parsed.get());
 
             // thing consumed input
             if (read == prev_read)
-                return result;
+                break;
 
             prev_read = read;
         }
 
+        // TODO: improve verbosity
         if (result.size() < min_count)
             return fail("p_many parsed only ", result.size(),
                         " while expecting at least ", min_count);
@@ -658,7 +662,7 @@ struct p_alpha_str : p_parser<std::string>
 {
     p_many<p_one_pred<is_alpha>> parser;
 
-    p_alpha_str(unsigned min_len = 0) : parser(min_len)
+    p_alpha_str(std::size_t min_len = 0) : parser(min_len)
     { }
 
     maybe<std::string> operator()(input& in)
@@ -767,3 +771,80 @@ struct p_quoted : p_parser<std::string>
     }
 };
 
+
+
+template<typename P, typename Sep>
+struct p_many_sep_by : p_parser<std::vector<typename P::value_type>>
+{
+    using chunk = typename P::value_type;
+    using value_type = std::vector<chunk>;
+
+    P thing;
+    Sep separator;
+
+    bool allow_trailing = false;
+
+    p_many_sep_by() = default;
+
+    p_many_sep_by(bool allow_trailing)
+        : thing(), separator(), allow_trailing(allow_trailing)
+    { }
+
+    p_many_sep_by(P p, Sep sep, bool allow_trailing = false)
+        : thing(std::move(p)), separator(sep), allow_trailing(allow_trailing)
+    { }
+
+    maybe<value_type> operator()(input& in)
+    {
+        auto result = std::vector<chunk>{};
+        auto prev_read = in.consumed();
+
+        bool parsed_sep = false;
+
+        while (!in.end())
+        {
+            auto parsed = thing(in);
+
+            parsed_sep = false;
+
+            auto read = in.consumed();
+
+            if (parsed.is_failed())
+            {
+                // thing consumed input
+                if (read - prev_read > 0)
+                    return parsed.get_fail();
+
+                // otherwise
+                break;
+            }
+
+            result.push_back(parsed.get());
+
+            // thing consumed input
+            if (read == prev_read)
+                break;
+
+            prev_read = read;
+
+            // solve separator
+
+            auto sep = separator(in);
+
+            if (sep.is_failed())
+            {
+                if (prev_read != in.consumed())
+                    return sep.get_fail();
+                break;
+            }
+
+            parsed_sep = true;
+        }
+
+        // TODO: improve verbosity
+        if (parsed_sep && !allow_trailing)
+            return fail("p_many_sep_by: trailing separator");
+
+        return result;
+    }
+};
