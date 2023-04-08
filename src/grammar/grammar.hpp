@@ -90,6 +90,13 @@ struct p_composite_color;
 struct p_call;
 
 
+template<typename T, typename... Args>
+node_ptr make_node(Args&&... args)
+{
+    return std::make_shared<node>(T(std::forward<Args>(args)...));
+}
+
+
 struct literal_string
 {
     std::string data;
@@ -130,14 +137,13 @@ struct literal_effect
 
 struct literal_separator
 {
-    sep data;
-    literal_separator(sep data) : data(data) {}
+    std::string data;
+    literal_separator(std::string data) : data(std::move(data)) {}
 
     friend std::ostream& operator<<(std::ostream& out,
                                     const literal_separator& a)
     {
-        (void) a;
-        return out;
+        return out << a.data;
     }
 };
 
@@ -175,14 +181,15 @@ struct call
 inline std::ostream& operator<<(std::ostream& out,
                                 const composite_color& a)
 {
-    out << "{";
+    out << "{ ";
     const char* sep = "";
-    for (const auto& val : a.args)
+    for (const auto& ptr : a.args)
     {
-        out << sep << val;
+        out << sep;
         sep = " ";
+        std::visit([&](const auto& val) { out << val; }, *ptr);
     }
-    return out << "}";
+    return out << " }";
 }
 
 
@@ -198,7 +205,6 @@ inline std::ostream& operator<<(std::ostream& out, const call& a)
     {
         out << sep;
         sep = " ";
-
         std::visit([&](const auto& val) { out << val; }, *ptr);
     }
     return out << ")";
@@ -213,31 +219,31 @@ inline std::ostream& operator<<(std::ostream& out, node_ptr obj)
 
 
 
+// -----------------------------------------------------------------------------
+// PARSERS
+// -----------------------------------------------------------------------------
+
+
+
 struct p_literal_string : p_parser<node_ptr>
 {
-    p_try_seq<std::string, p_quoted, p_quoted> parser;
-
-    p_literal_string() : parser{ p_quoted('"',  '\\'),
-                                 p_quoted('\'', '\\') }
-    { }
+    p_try_seq<std::string, p_quoted<'"',  '\\'>,
+                           p_quoted<'\'', '\\'>> parser;
 
     maybe<node_ptr> operator()(input& in)
     {
         return parser(in)
             .fmap([](auto str)
             {
-                return std::make_shared<node>(literal_string(std::move(str)));
+                return make_node<literal_string>(std::move(str));
             });
     }
 };
 
 struct p_literal_color : p_parser<node_ptr>
 {
-    p_prefixed<p_char, p_many<p_one_pred<is_hex>>> parser;
-
-    p_literal_color() : parser{ p_char('#'),
-                                p_many<p_one_pred<is_hex>>{ 6, 6 } }
-    { }
+    p_prefixed<p_char<'#'>,
+               p_many<p_one_pred<is_hex>, 6, 6>> parser;
 
     maybe<node_ptr> operator()(input& in)
     {
@@ -266,24 +272,66 @@ struct p_literal_color : p_parser<node_ptr>
                 color.r = get_hex(vec[0], vec[1]);
                 color.g = get_hex(vec[2], vec[3]);
                 color.b = get_hex(vec[4], vec[5]);
-                return std::make_shared<node>(literal_color(color));
+                return make_node<literal_color>(color);
             });
     }
 };
 
 struct p_literal_effect : p_parser<node_ptr>
 {
+    p_try_seq<std::string,
+              p_string<'b', 'o', 'l', 'd'>
+              > parser;
 
+    maybe<node_ptr> operator()(input& in)
+    {
+        return parser(in)
+            .fmap([&](auto& str)
+            {
+                return make_node<literal_separator>(std::move(str));
+            });
+    }
 };
 
 struct p_literal_separator : p_parser<node_ptr>
 {
+    p_try_seq<std::string,
+              p_string<':', '>'>,   // powerline
+              p_string<'<', ':'>,
+              p_string<'>', '>'>,   // thick powerline
+              p_string<'/', '/'>,   // slope
+              p_string<'\\', '\\'>,
+              p_string<'<', '<'>,
+              p_string<'~'>,        // space
+              p_string<'-', '-'>,   // fill
+              p_string<'V'>         // newline
+              > parser;
 
+    maybe<node_ptr> operator()(input& in)
+    {
+        return parser(in)
+            .fmap([&](auto& str)
+            {
+                return make_node<literal_separator>(std::move(str));
+            });
+    }
 };
 
 struct p_literal_bool : p_parser<node_ptr>
 {
+    p_try_seq<std::string,
+              p_string<'t', 'r', 'u', 'e'>,
+              p_string<'f', 'a', 'l', 's', 'e'>
+              > parser;
 
+    maybe<node_ptr> operator()(input& in)
+    {
+        return parser(in)
+            .fmap([&](const std::string& str)
+            {
+                return make_node<literal_bool>(str == "true");
+            });
+    }
 };
 
 struct p_composite_color : p_parser<node_ptr>
@@ -302,10 +350,13 @@ struct p_node : p_parser<node_ptr>
 
     maybe<node_ptr> operator()(input& in)
     {
-        p_try_seq<node_ptr,
-                  p_literal_string,
-                  p_literal_color,
-                  p_call> parser;
+        p_spaces_before<p_try_seq<node_ptr,
+                        p_spaces_after<p_literal_string>,
+                        p_spaces_after<p_literal_color>,
+                        p_spaces_after<p_literal_bool>,
+                        p_spaces_after<p_call>,
+                        p_spaces_after<p_composite_color>>
+                        > parser;
 
         return parser(in);
     }
@@ -314,21 +365,28 @@ struct p_node : p_parser<node_ptr>
 
 maybe<node_ptr> p_call::operator()(input& in)
 {
-    auto parser = p_between<p_char,
-                            p_after<p_suffixed<p_alpha_str, p_space>,
-                                    p_many_sep_by<p_node,
-                                                  p_space1>>,
-                            p_char>
-    {
-        p_char{ '(' },
-        { { p_alpha_str{ 1 }, {} }, {} },
-        p_char{ ')' },
-    };
+    auto parser = p_between<p_suffixed<p_char<'('>, p_space>,
+                            p_after<p_suffixed<p_alpha_str<1>, p_space>,
+                                    p_many<p_node>>,
+                            p_char<')'>>{};
 
     return parser(in)
         .fmap([&](auto pair)
         {
-            return std::make_shared<node>(call(pair.first,
-                                                std::move(pair.second)));
+            return make_node<call>(pair.first, std::move(pair.second));
+        });
+}
+
+
+maybe<node_ptr> p_composite_color::operator()(input& in)
+{
+    auto parser = p_between<p_char<'{'>,
+                            p_many<p_node>,
+                            p_char<'}'>>{};
+
+    return parser(in)
+        .fmap([&](auto nodes)
+        {
+            return make_node<composite_color>(std::move(nodes));
         });
 }

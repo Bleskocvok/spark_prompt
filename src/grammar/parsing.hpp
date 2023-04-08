@@ -33,16 +33,26 @@ auto lift2(F2&& f2, A&& a, B&& b)
                          std::forward<typename B::value_type>(b.get())))>;
 
 
+constexpr unsigned MAX_SIZE = -1;
+
 //
 // parser objects
 //
 template<typename T>
 struct p_parser;
 
+template<char C>
 struct p_char;
+
+template<char... Chars>
 struct p_string;
+
+template<unsigned MinLen = 0>
 struct p_alpha_str;
+
+template<char Quote = '"', char Esc = '\\'>
 struct p_quoted;
+
 struct p_one_of;
 struct p_unsigned;
 struct p_space;
@@ -63,10 +73,10 @@ struct p_prefixed;  // B  *>  T
 template<typename T, typename B>
 struct p_suffixed;  // T  <*  B
 
-template<typename P>
+template<typename P, unsigned MinCount = 0, unsigned MaxCount = MAX_SIZE>
 struct p_many;
 
-template<typename P, typename Sep>
+template<typename P, typename Sep, bool AllowTrailing = false>
 struct p_many_sep_by;
 
 template<typename Result, typename ... Parsers>
@@ -75,7 +85,11 @@ struct p_build;
 template<typename Result, typename ... Parsers>
 struct p_try_seq;
 
-
+// helper parsers
+template<typename P>
+using p_spaces_after = p_suffixed<P, p_space>;
+template<typename P>
+using p_spaces_before = p_prefixed<p_space, P>;
 
 // -----------------------------------------------------------------------------
 // IMPLEMENTATION
@@ -267,23 +281,21 @@ protected:
 
 
 
+template<char C>
 struct p_char : p_parser<char>
 {
-    char c = 0;
-    p_char(char c) : c(c) {}
-
     maybe<char> operator()(input& in)
     {
-        if (in.good() && in.peek() == c)
+        if (in.good() && in.peek() == C)
         {
             in.eat();
-            return c;
+            return C;
         }
 
         auto got = !in.good() ? std::string("EOF")
                               : std::string() += in.peek();
 
-        return fail("'", c, "' expected, got '", got, "'");
+        return fail("'", C, "' expected, got '", got, "'");
     }
 };
 
@@ -364,27 +376,24 @@ struct p_one_of : p_parser<char>
 };
 
 
+struct str_builder
+{
+    std::string str;
 
+    template<typename... Args>
+    str_builder(Args... chars) { ( str.push_back(chars), ... ); }
+};
+
+
+template<char... Chars>
 struct p_string : p_parser<std::string>
 {
-    std::set<char> allowed;
-    std::size_t min_len = 0;
-
-    p_string(std::set<char> allowed, std::size_t min_len = 0)
-        : allowed(std::move(allowed)), min_len(min_len)
-    { }
+    p_build<str_builder, p_char<Chars>...> parser;
 
     maybe<std::string> operator()(input& in)
     {
-        auto result = std::string{};
-
-        while (!in.end() && allowed.count(in.peek()))
-            result += in.eat();
-
-        if (result.length() < min_len)
-            return fail("string is not of minimum length");
-
-        return result;
+        return parser(in)
+            .fmap([](str_builder& builder){ return std::move(builder.str); });
     }
 };
 
@@ -398,6 +407,8 @@ struct p_between : p_parser<typename T::value_type>
     B begin;
     T thing;
     E end;
+
+    p_between() = default;
 
     p_between(B b, T t, E e)
         : begin(std::move(b)), thing(std::move(t)), end(std::move(e))
@@ -419,23 +430,17 @@ struct p_between : p_parser<typename T::value_type>
 
 
 
-template<typename P>
+template<typename P, unsigned MinCount, unsigned MaxCount>
 struct p_many : p_parser<std::vector<typename P::value_type>>
 {
     using chunk = typename P::value_type;
     using value_type = std::vector<chunk>;
 
     P thing;
-    std::size_t min_count = 0;
-    std::size_t max_count = -1;
 
     p_many() = default;
 
-    p_many(std::size_t min_count, std::size_t max_count = -1)
-        : thing(), min_count(min_count), max_count(max_count) {}
-
-    p_many(P p, std::size_t min_count = 0, std::size_t max_count = -1)
-        : thing(std::move(p)), min_count(min_count), max_count(max_count)
+    p_many(P p) : thing(std::move(p))
     { }
 
     maybe<value_type> operator()(input& in)
@@ -469,13 +474,13 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
         }
 
         // TODO: improve verbosity
-        if (result.size() < min_count)
+        if (result.size() < MinCount)
             return fail("p_many parsed only ", result.size(),
-                        " while expecting at least ", min_count);
+                        " while expecting at least ", MinCount);
 
-        if (result.size() > max_count)
+        if (result.size() > MaxCount)
             return fail("p_many parsed ", result.size(),
-                        " while expecting at most ", max_count);
+                        " while expecting at most ", MaxCount);
 
         return result;
     }
@@ -486,7 +491,13 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
 template<typename Result, typename ... Parsers>
 struct p_build : p_parser<Result>
 {
-    std::tuple<Parsers...> parsers;
+    static_assert(std::is_constructible_v<Result,
+                                          typename Parsers::value_type...>,
+                 "Result must be constructible from parser results");
+
+    std::tuple<Parsers...> parsers{};
+
+    p_build() = default;
 
     p_build(Parsers&&... parsers)
         : parsers(std::forward<Parsers>(parsers)...)
@@ -494,11 +505,7 @@ struct p_build : p_parser<Result>
 
     maybe<Result> operator()(input& in)
     {
-        static_assert(std::is_constructible_v<Result,
-                                              typename Parsers::value_type...>,
-                      "Result must be constructible from parser results");
-
-        return parse<Result>(in, parsers);
+        return parse(in, parsers);
     }
 
 private:
@@ -547,17 +554,17 @@ private:
             if (!std::get<N>(out))
                 return false;
 
-            return parse_from_nth<Result, N + 1>(in, out, std::move(parsers));
+            return parse_from_nth<N + 1>(in, out, std::move(parsers));
         }
     }
 
 
-    template<typename ... Args>
-    static maybe<Result> parse(input& in, std::tuple<Args...> parsers)
+    // template<typename ... Args>
+    static maybe<Result> parse(input& in, std::tuple<Parsers...> parsers)
     {
-        auto parse_results = tuple_of_maybe<Args ...>();
+        auto parse_results = tuple_of_maybe<Parsers...>();
 
-        bool ok = parse_from_nth<Result, 0>(in, parse_results, parsers);
+        bool ok = parse_from_nth<0>(in, parse_results, parsers);
 
         // TODO: print the error from the actual failed parser
         if (!ok)
@@ -573,7 +580,7 @@ private:
 
 struct p_space : p_parser<std::vector<char>>
 {
-    p_many<p_one_pred<is_space>> parser;
+    p_many<p_one_pred<is_space>, 0> parser;
 
     auto operator()(input& in)
     {
@@ -607,12 +614,18 @@ struct p_after : p_parser<std::pair<typename A::value_type,
     A first;
     B second;
 
+    p_after() = default;
+
     p_after(A first, B second)
         : first(std::move(first)), second(std::move(second)) {}
 
-    auto operator()(input& in)
+    auto operator()(input& in) -> maybe<std::pair<typename A::value_type,
+                                                  typename B::value_type>>
     {
         auto a = first(in);
+        if (a.is_failed())
+            return a.get_fail();
+
         auto b = second(in);
         return lift2(std::make_pair<typename A::value_type,
                                     typename B::value_type>,
@@ -658,12 +671,10 @@ struct p_suffixed : p_parser<typename T::value_type>
 
 
 
+template<unsigned MinLen>
 struct p_alpha_str : p_parser<std::string>
 {
-    p_many<p_one_pred<is_alpha>> parser;
-
-    p_alpha_str(std::size_t min_len = 0) : parser(min_len)
-    { }
+    p_many<p_one_pred<is_alpha>, MinLen> parser;
 
     maybe<std::string> operator()(input& in)
     {
@@ -716,13 +727,10 @@ struct p_try_seq : p_parser<Result>
 
 
 
+template<char Quote, char Esc>
 struct p_quoted : p_parser<std::string>
 {
-    char quote = '"';
-    char escape = '\\';
-
     p_quoted() = default;
-    p_quoted(char quote, char escape) : quote(quote), escape(escape) {}
 
     maybe<std::string> operator()(input& in)
     {
@@ -732,8 +740,8 @@ struct p_quoted : p_parser<std::string>
                               : (std::string("'") += in.peek()) += "'";
         };
 
-        if (in.end() || in.peek() != quote)
-            return fail("expected opening '", quote, "', got ", get_got());
+        if (in.end() || in.peek() != Quote)
+            return fail("expected opening '", Quote, "', got ", get_got());
 
         // eat opening quote
         in.eat();
@@ -743,13 +751,13 @@ struct p_quoted : p_parser<std::string>
 
         while (in.good())
         {
-            if (!escaped && in.peek() == quote)
+            if (!escaped && in.peek() == Quote)
                 break;
 
-            if (in.peek() == escape)
+            if (in.peek() == Esc)
             {
                 if (escaped)
-                    result += escape;
+                    result += Esc;
 
                 escaped = !escaped;
                 in.eat();
@@ -761,8 +769,8 @@ struct p_quoted : p_parser<std::string>
             }
         }
 
-        if (in.end() || in.peek() != quote)
-            return fail("expected closing '", quote, "', got ", get_got());
+        if (in.end() || in.peek() != Quote)
+            return fail("expected closing '", Quote, "', got ", get_got());
 
         // eat closing quote
         in.eat();
@@ -773,7 +781,7 @@ struct p_quoted : p_parser<std::string>
 
 
 
-template<typename P, typename Sep>
+template<typename P, typename Sep, bool AllowTrailing>
 struct p_many_sep_by : p_parser<std::vector<typename P::value_type>>
 {
     using chunk = typename P::value_type;
@@ -782,16 +790,10 @@ struct p_many_sep_by : p_parser<std::vector<typename P::value_type>>
     P thing;
     Sep separator;
 
-    bool allow_trailing = false;
-
     p_many_sep_by() = default;
 
-    p_many_sep_by(bool allow_trailing)
-        : thing(), separator(), allow_trailing(allow_trailing)
-    { }
-
-    p_many_sep_by(P p, Sep sep, bool allow_trailing = false)
-        : thing(std::move(p)), separator(sep), allow_trailing(allow_trailing)
+    p_many_sep_by(P p, Sep sep)
+        : thing(std::move(p)), separator(std::move(sep))
     { }
 
     maybe<value_type> operator()(input& in)
@@ -842,7 +844,7 @@ struct p_many_sep_by : p_parser<std::vector<typename P::value_type>>
         }
 
         // TODO: improve verbosity
-        if (parsed_sep && !allow_trailing)
+        if (parsed_sep && !AllowTrailing)
             return fail("p_many_sep_by: trailing separator");
 
         return result;
