@@ -20,3 +20,11 @@ syntax example
 [ ~ { white   ; 4, 56, 107 } '@' hostname ~ ] >>
 [ ~ { #ffffff ; 5,82,158   }     pwd      ~ ] :> 
 ```
+
+
+
+```
+(segment { #0011FF (rgb 255 0 123) #bold } "" >)
+(segment - "" >>)
+(hostname) (pwd) (if (exit) #ffeedd )
+```
