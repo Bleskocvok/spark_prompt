@@ -8,12 +8,23 @@
 
 
 
+struct lolol : builtin_func<>
+{
+    evaluated perform() override
+    {
+        return std::string{ "lolol" };
+    }
+};
+
+
+
 int main()
 {
     {
         auto borek = p_sequence{};
-        auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) "
-                        "{ #ff00ff true } ( a) true false 'ahoj' \"lolololo\") >> ]   ");
+        // auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) "
+        //                 "{ #ff00ff true } ( a) true false 'ahoj' \"lolololo\") >> ]   ");
+        auto in = input("  [ { #ff00ff #0000ff #0000ff } (lolol) >> ]   ");
         // auto in = input("( ahoj #ffffff    (a ) (bbbbb (bbb))\n )");
         maybe<std::vector<node_ptr>> parsed = borek(in);
 
@@ -28,12 +39,16 @@ int main()
         {
             auto node = parsed.get();
             auto eval = evaluator{};
+
+            eval.add_func("lolol", std::make_unique<lolol>());
+
             maybe<style> result = eval(node);
 
             result.visit([](const style& st)
             {
                 std::cout << "style" << std::endl;
                 st.render(std::cout);
+                std::cout << "\n";
             },
             [](const fail& f)
             {
@@ -42,7 +57,25 @@ int main()
         }
     }
 
-    std::cout << literal_color(rgb{ 255, 128, 0 }) << std::endl;
+    // std::cout << literal_color(rgb{ 255, 128, 0 }) << std::endl;
+
+    // std::unique_ptr<func> mk = std::make_unique<mk_theme>();
+    // auto params = std::vector<evaluated>{ color{}, fail{}, color{} };
+
+    // auto check = mk->check_types(params);
+    // if (check)
+    // {
+    //     auto[i, err] = *check;
+    //     std::cout << "check fail: " << i << "; err: " << err << std::endl;
+    // }
+
+    // auto result = (*mk)(params);
+    // std::cout << "result.index(): " << result.index() << std::endl;
+
+    // if (result.index() == 0)
+    // {
+    //     std::cout << "result: " << std::get<fail>(result) << std::endl;
+    // }
 
     return 0;
 }
