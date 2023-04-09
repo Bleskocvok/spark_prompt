@@ -17,6 +17,15 @@ struct lolol : builtin_func<>
 };
 
 
+struct if_then_else : builtin_func<typ::boolean, typ::any, typ::any>
+{
+    evaluated perform(bool b, evaluated t, evaluated f) override
+    {
+        return b ? t : f;
+    }
+};
+
+
 
 int main()
 {
@@ -24,7 +33,7 @@ int main()
         auto borek = p_sequence{};
         // auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) "
         //                 "{ #ff00ff true } ( a) true false 'ahoj' \"lolololo\") >> ]   ");
-        auto in = input("  [ { #ff00ff #0000ff #0000ff } (lolol) >> ]   ");
+        auto in = input("  [ { #ff00ff #0000ff #0000ff } (if true 'its tru' (lolol)) >> ]   ");
         // auto in = input("( ahoj #ffffff    (a ) (bbbbb (bbb))\n )");
         maybe<std::vector<node_ptr>> parsed = borek(in);
 
@@ -41,6 +50,7 @@ int main()
             auto eval = evaluator{};
 
             eval.add_func("lolol", std::make_unique<lolol>());
+            eval.add_func("if", std::make_unique<if_then_else>());
 
             maybe<style> result = eval(node);
 

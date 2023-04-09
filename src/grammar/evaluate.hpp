@@ -89,7 +89,7 @@ struct func
     }
 
     template<typ Idx>
-    auto get(const eval_vec& vec, int i)
+    auto get(const eval_vec& vec, int i) -> get_type_t<Idx>
     {
         const evaluated& val = vec[i];
 
