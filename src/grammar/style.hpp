@@ -2,7 +2,6 @@
 
 // custom
 #include "segment.hpp"
-#include "function.hpp"
 
 // cpp
 #include <vector>       // vector

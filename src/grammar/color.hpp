@@ -19,7 +19,7 @@ inline auto COLEND   = std::string{ "m" };
 inline bool USE_INVIS = true;
 
 
-enum class bit3 : uint8_t
+enum class bit3 : std::uint8_t
 {
     black   = 30,
     red     = 31,
@@ -33,7 +33,7 @@ enum class bit3 : uint8_t
 };
 
 
-enum class effect : uint8_t
+enum class effect : std::uint8_t
 {
     none       = 0,
     bold       = 1,
@@ -49,9 +49,9 @@ enum class effect : uint8_t
 
 struct rgb
 {
-    uint8_t r = 255,
-            g = 255,
-            b = 255;
+    std::uint8_t r = 255,
+                 g = 255,
+                 b = 255;
 };
 
 

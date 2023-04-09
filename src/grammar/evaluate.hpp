@@ -2,6 +2,7 @@
 #pragma once
 
 #include "grammar.hpp"
+#include "style.hpp"
 
 #include <utility>      // move, pair
 #include <variant>      // visit
@@ -12,10 +13,6 @@
 #include <memory>       // unique_ptr
 
 
-
-struct color {};
-struct segment {};
-
 using evaluated = std::variant<fail,
                                bool,
                                unsigned,
@@ -23,6 +20,17 @@ using evaluated = std::variant<fail,
                                color,
                                sep,
                                segment>;
+
+
+inline bool is_segment(const evaluated& elem)
+{
+    return std::holds_alternative<segment>(elem);
+}
+
+inline bool is_fail(const evaluated& elem)
+{
+    return std::holds_alternative<fail>(elem);
+}
 
 
 enum class type : unsigned
@@ -105,16 +113,27 @@ struct evaluator
 {
     using functions_t = std::map<std::string, std::unique_ptr<func>>;
 
-    auto operator()(const std::vector<node_ptr>& nodes)
-        -> std::vector<evaluated>
+    auto operator()(const std::vector<node_ptr>& nodes) -> maybe<style>
     {
-        auto result = std::vector<evaluated>{};
-        result.reserve(nodes.size());
+        auto segments = std::vector<segment>{};
+        segments.reserve(nodes.size());
 
         for (const auto& ptr : nodes)
-            result.push_back(eval(ptr));
+        {
+            auto res = eval(ptr);
 
-        return result;
+            if (!is_segment(res))
+            {
+                if (is_fail(res))
+                    return std::get<fail>(res);
+
+                return fail("type mismatch: needs to be ‹segment›");
+            }
+
+            segments.push_back(std::move(std::get<segment>(res)));
+        }
+
+        return style{ std::move(segments) };
     }
 
     auto eval(const node_ptr& ptr) -> evaluated
@@ -142,7 +161,8 @@ struct evaluator
         {
             for (auto& ptr : com.args)
                 std::visit(*this, *ptr);
-            return fail();
+            // return fail();
+            return segment{ "ahoj" };
         }
 
         evaluated operator()(const call& com)

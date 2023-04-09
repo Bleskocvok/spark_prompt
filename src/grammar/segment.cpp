@@ -1,7 +1,7 @@
 #include "segment.hpp"
 
 // custom
-#include "unicode.hpp"
+#include "../unicode.hpp"
 
 // cpp
 #include <stdexcept>    // logic_error

@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "style.hpp"
 #include "parsing.hpp"
 
 #include <memory>       // shared_ptr, make_shared
@@ -38,30 +39,15 @@ namespace std
 
 
 
-struct rgb
-{
-    std::uint8_t r, g, b;
-};
+// struct rgb
+// {
+//     std::uint8_t r, g, b;
+// };
 
-enum class effect : std::uint8_t
-{
-    bold, blink
-};
-
-enum class sep
-{
-    empty,
-    space,
-    powerline,
-    powerline_space,
-    powerline_pseudo,
-    newline,
-    fill,
-
-    r_powerline,
-    r_powerline_space,
-    r_powerline_pseudo,
-};
+// enum class effect : std::uint8_t
+// {
+//     bold, blink
+// };
 
 
 struct literal_string;

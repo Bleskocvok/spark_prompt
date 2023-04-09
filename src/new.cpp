@@ -15,25 +15,30 @@ int main()
         auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) "
                         "{ #ff00ff true } ( a) true false 'ahoj' \"lolololo\") >> ]   ");
         // auto in = input("( ahoj #ffffff    (a ) (bbbbb (bbb))\n )");
-        auto mby = borek(in);
+        maybe<std::vector<node_ptr>> parsed = borek(in);
 
         auto print = [](const auto& thing)
         {
             std::cout << std::boolalpha << thing << std::endl;
         };
 
-        mby.visit(print, print);
+        parsed.visit(print, print);
 
-        if (mby)
+        if (parsed)
         {
-            auto node = mby.get();
+            auto node = parsed.get();
             auto eval = evaluator{};
-            auto result = eval(node);
+            maybe<style> result = eval(node);
 
-            for (unsigned i = 0; i < result.size(); ++i)
-                std::cout << "[" << i << "].index="
-                          << result[i].index()
-                          << std::endl;
+            result.visit([](const style& st)
+            {
+                std::cout << "style" << std::endl;
+                st.render(std::cout);
+            },
+            [](const fail& f)
+            {
+                std::cout << "fail: " << f << std::endl;
+            });
         }
     }
 
