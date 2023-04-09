@@ -292,6 +292,6 @@ struct evaluator
 
         evaluated operator()(const literal_separator& l) { return sep::powerline; }
 
-        evaluated operator()(const literal_color& l) { return color{}; }
+        evaluated operator()(const literal_color& l) { return color{ l.data }; }
     };
 };
