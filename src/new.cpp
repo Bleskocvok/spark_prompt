@@ -1,46 +1,19 @@
 
 #include "grammar/parsing.hpp"
 #include "grammar/grammar.hpp"
+#include "grammar/evaluate.hpp"
 
 
 #include <iostream>
 
 
 
-int func(int& a, int b, int c)
-{
-    a = 10;
-    return a + b * c;
-}
-
-// struct neco_t
-// {
-//     char a;
-//     int b;
-//     neco_t(char a, int b) : a(a), b(b) {}
-// };
-
-
-// struct neco_t
-// {
-//     char a, b, c;
-//     neco_t(char a, char b, char c) : a(a), b(b), c(c) {}
-// };
-
-
-// struct neco_t
-// {
-//     char a;
-//     neco_t(char a) : a(a) {}
-// };
-
-
-
 int main()
 {
     {
-        auto borek = p_node{};
-        auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) { #ff00ff true } ( a) true false 'ahoj' \"lolololo\") ]   ");
+        auto borek = p_sequence{};
+        auto in = input("  [ (ahoj #ffffff \n (asdhasdaskdk true) "
+                        "{ #ff00ff true } ( a) true false 'ahoj' \"lolololo\") >> ]   ");
         // auto in = input("( ahoj #ffffff    (a ) (bbbbb (bbb))\n )");
         auto mby = borek(in);
 
@@ -50,6 +23,18 @@ int main()
         };
 
         mby.visit(print, print);
+
+        if (mby)
+        {
+            auto node = mby.get();
+            auto eval = evaluator{};
+            auto result = eval(node);
+
+            for (unsigned i = 0; i < result.size(); ++i)
+                std::cout << "[" << i << "].index="
+                          << result[i].index()
+                          << std::endl;
+        }
     }
 
     std::cout << literal_color(rgb{ 255, 128, 0 }) << std::endl;

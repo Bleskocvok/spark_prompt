@@ -79,17 +79,18 @@ using node = std::variant<literal_string, literal_color, literal_effect,
 using node_ptr = std::shared_ptr<node>;
 
 
-// combined parser
+// combined parsers
 struct p_node;
+using p_sequence = p_many<p_node>;
+struct p_composite_color;
+struct p_composite_segment;
+struct p_call;
 // other parsers
 struct p_literal_string;
 struct p_literal_color;
 struct p_literal_effect;
 struct p_literal_separator;
 struct p_literal_bool;
-struct p_composite_color;
-struct p_composite_segment;
-struct p_call;
 
 
 template<typename T, typename... Args>
@@ -390,14 +391,14 @@ struct p_node : p_parser<node_ptr>
 
     maybe<node_ptr> operator()(input& in)
     {
-        p_spaces_before<p_try_seq<node_ptr,
-                                  p_spaces_after<p_literal_string>,
-                                  p_spaces_after<p_literal_color>,
-                                  p_spaces_after<p_literal_bool>,
-                                  p_spaces_after<p_call>,
-                                  p_spaces_after<p_composite_color>,
-                                  p_spaces_after<p_composite_segment>
-                                 >
+        p_spaces_around<p_try_seq<node_ptr,
+                                  p_literal_string,
+                                  p_literal_color,
+                                  p_literal_bool,
+                                  p_literal_separator,
+                                  p_call,
+                                  p_composite_color,
+                                  p_composite_segment>
                         > parser;
 
         return parser(in);

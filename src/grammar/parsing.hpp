@@ -23,6 +23,7 @@
 struct fail;
 struct input;
 
+// Either fail T
 template<typename T>
 struct maybe;
 
@@ -41,6 +42,10 @@ constexpr unsigned MAX_SIZE = -1;
 template<typename T>
 struct p_parser;
 
+struct p_one_of;
+struct p_space;
+struct p_space1;
+
 template<char C>
 struct p_char;
 
@@ -53,10 +58,8 @@ struct p_alpha_str;
 template<char Quote = '"', char Esc = '\\'>
 struct p_quoted;
 
-struct p_one_of;
+template<unsigned Min = 0, unsigned Max = MAX_SIZE>
 struct p_unsigned;
-struct p_space;
-struct p_space1;
 
 template<typename Pred>
 struct p_one_pred;
@@ -90,6 +93,8 @@ template<typename P>
 using p_spaces_after = p_suffixed<P, p_space>;
 template<typename P>
 using p_spaces_before = p_prefixed<p_space, P>;
+template<typename P>
+using p_spaces_around = p_spaces_before<p_spaces_after<P>>;
 
 // -----------------------------------------------------------------------------
 // IMPLEMENTATION
@@ -301,12 +306,9 @@ struct p_char : p_parser<char>
 
 
 
+template<unsigned Min, unsigned Max>
 struct p_unsigned : p_parser<unsigned>
 {
-    unsigned min = 0;
-    unsigned max = -1;
-
-    p_unsigned(int min, int max) : min(min), max(max) {}
     p_unsigned() = default;
 
     maybe<unsigned> operator()(input& in)
@@ -325,8 +327,8 @@ struct p_unsigned : p_parser<unsigned>
 
         } while (!in.end() && is_digit{}(in.peek()));
 
-        if (res < min || res > max)
-            return fail("num ", res, " outside bounds <", min, ",", max, ">");
+        if (res < Min || res > Max)
+            return fail("num ", res, " outside bounds <", Min, ",", Max, ">");
 
         return res;
     }
