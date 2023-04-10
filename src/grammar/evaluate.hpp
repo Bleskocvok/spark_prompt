@@ -4,7 +4,7 @@
 #include "grammar.hpp"
 #include "style.hpp"
 
-#include <utility>      // move, pair
+#include <utility>      // move, pair, forward
 #include <variant>      // visit, variant_alternative_t, variant_size_v
 #include <stdexcept>    // runtime_error
 #include <cstdint>      // size_t
@@ -194,6 +194,14 @@ struct evaluator
     bool add_func(std::string name, std::unique_ptr<func> f)
     {
         return funcs.emplace(std::move(name), std::move(f)).second;
+    }
+
+    template<typename T, typename... Args>
+    bool emplace_func(std::string name, Args&&... args)
+    {
+        return funcs.emplace(
+                    std::move(name),
+                    std::make_unique<T>(std::forward<Args>(args)...)).second;
     }
 
     auto operator()(const std::vector<node_ptr>& nodes) -> maybe<style>

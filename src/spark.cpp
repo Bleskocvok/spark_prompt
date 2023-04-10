@@ -120,18 +120,77 @@
 
 #include <iostream>
 
+// POSIX
+#include <unistd.h>     // posix, geteuid, gethostname, getcwd
+#include <sys/types.h>  // geteuid, getpwuid
+#include <pwd.h>        // getpwuid
 
 
-struct lolol : builtin_func<>
+struct username_t : builtin_func<>
 {
     evaluated perform() override
     {
-        return std::string{ "lolol" };
+        struct passwd* user_info = ::getpwuid(::geteuid());
+        return std::string{ user_info->pw_name };
+    }
+};
+
+struct hostname_t : builtin_func<>
+{
+    evaluated perform() override
+    {
+        char buffer[256] = { 0 };
+        ::gethostname(buffer, sizeof(buffer));
+        return std::string{ buffer };
+    }
+};
+
+struct pwd_t : builtin_func<>
+{
+    evaluated perform() override
+    {
+        static const size_t max_size = 35;
+
+        char* buffer = std::getenv("PWD");
+        if (buffer == nullptr)
+            return std::string{};
+
+        std::string result = buffer;
+
+        struct passwd* user_info = ::getpwuid(::geteuid());
+        std::string home = user_info->pw_dir;
+
+        if (result.substr(0, home.size()) == home)
+        {
+            result.erase(1, home.size() - 1);
+            result.front() = '~';
+        }
+
+        if (result.size() > max_size)
+        {
+            result.erase(0, result.size() - max_size);
+            result.insert(0, "…");
+        }
+        return result;
+    }
+};
+
+struct exit_t : builtin_func<>
+{
+    int value = 0;
+
+    exit_t(int value) : builtin_func(), value(value)
+    { }
+
+    evaluated perform() override
+    {
+        // TODO: return the actual integer value
+        return bool(value == 0);
     }
 };
 
 
-struct if_then_else : builtin_func<typ::boolean, typ::any, typ::any>
+struct if_then_else_t : builtin_func<typ::boolean, typ::any, typ::any>
 {
     evaluated perform(bool b, evaluated t, evaluated f) override
     {
@@ -207,7 +266,10 @@ int main(int argc, char** argv)
     // TODO: solve edge cases
     USE_INVIS = !params.preview || params.validate;
 
-    static const auto default_code = "[ { #eeeeEe #ff11ff '' } 'hello, I am prompt $' >> ]"s;
+    static const auto default_code =
+    "[ { #eeeeEe #ff11ff '' } (user) >> ]"
+    "[ { #eeeeEe #bb00bb '' } (host) >> ]"
+    "[ { #eeeeEe #ff11ff '' } (pwd)  >> ]"s;
 
     const char* env_value = std::getenv("SPARK_THEME");
     auto code = env_value == nullptr ? default_code
@@ -228,8 +290,11 @@ int main(int argc, char** argv)
     auto node = parsed.get();
     auto eval = evaluator{};
 
-    eval.add_func("lolol", std::make_unique<lolol>());
-    eval.add_func("if", std::make_unique<if_then_else>());
+    eval.add_func("exit", std::make_unique<exit_t>(params.exit_code));
+    eval.add_func("if", std::make_unique<if_then_else_t>());
+    eval.add_func("pwd", std::make_unique<pwd_t>());
+    eval.add_func("user", std::make_unique<username_t>());
+    eval.add_func("host", std::make_unique<hostname_t>());
 
     maybe<style> result = eval(node);
 
