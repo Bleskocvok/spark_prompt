@@ -38,6 +38,7 @@ inline bool is_fail(const evaluated& elem)
 
 enum class typ : unsigned
 {
+    fail     = 0,
     boolean  = 1,
     integer  = 2,
     string   = 3,
@@ -48,6 +49,24 @@ enum class typ : unsigned
     // variadic = 16,
     any      = 64,
 };
+
+
+auto typ_to_str(typ t) -> const char*
+{
+    switch (t)
+    {
+        case typ::fail: return "fail";
+        case typ::boolean: return "bool";
+        case typ::integer: return "int";
+        case typ::string: return "str";
+        case typ::color: return "color";
+        case typ::sep: return "sep";
+        case typ::segment: return "segment";
+        case typ::theme: return "theme";
+        case typ::any: return "any";
+        default: return "unknown";
+    }
+}
 
 
 template<typ Type>
@@ -71,7 +90,7 @@ using get_type_t = typename get_type<Type>::type;
 
 using eval_vec = std::vector<evaluated>;
 
-
+#include <iostream>
 struct func
 {
     virtual ~func() = default;
@@ -109,7 +128,16 @@ struct func
 
             if (expected[i] != typ::any
                     && args[i].index() != unsigned(expected[i]))
-                return std::pair{ i, fail("type mismatch") };
+            {
+                if (args[i].index() == 0)
+                    std::cerr << std::get<fail>(args[i]) << std::endl;
+
+                return std::pair{ i, fail("type mismatch: expected ‹",
+                                          typ_to_str(expected[i]),
+                                          "›, got ‹",
+                                          typ_to_str(typ(args[i].index())),
+                                          "›") };
+            }
         }
 
         if (args.size() > expected.size())
@@ -301,5 +329,7 @@ struct evaluator
         evaluated operator()(const literal_separator& l) { return sep::powerline; }
 
         evaluated operator()(const literal_color& l) { return color{ l.data }; }
+
+        evaluated operator()(const literal_number& n) { return unsigned(n.value); }
     };
 };

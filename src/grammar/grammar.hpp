@@ -38,30 +38,19 @@ namespace std
 }
 
 
-
-// struct rgb
-// {
-//     std::uint8_t r, g, b;
-// };
-
-// enum class effect : std::uint8_t
-// {
-//     bold, blink
-// };
-
-
 struct literal_string;
 struct literal_color;
 struct literal_effect;
 struct literal_separator;
+struct literal_number;
 struct literal_bool;
 struct composite_color;
 struct composite_segment;
 struct call;
 
 using node = std::variant<literal_string, literal_color, literal_effect,
-                          literal_separator, literal_bool, composite_color,
-                          composite_segment, call>;
+                          literal_separator, literal_bool, literal_number,
+                          composite_color, composite_segment, call>;
 using node_ptr = std::shared_ptr<node>;
 
 
@@ -77,6 +66,7 @@ struct p_literal_color;
 struct p_literal_effect;
 struct p_literal_separator;
 struct p_literal_bool;
+struct p_literal_number;
 
 
 template<typename T, typename... Args>
@@ -166,6 +156,17 @@ struct literal_bool
     friend std::ostream& operator<<(std::ostream& out, const literal_bool& a)
     {
         return out << (a.value ? "true" : "false");
+    }
+};
+
+struct literal_number
+{
+    int value;
+    literal_number(int value) : value(value) {}
+
+    friend std::ostream& operator<<(std::ostream& out, const literal_number& a)
+    {
+        return out << a.value;
     }
 };
 
@@ -287,7 +288,7 @@ struct p_literal_color : p_parser<node_ptr>
         };
 
         return parser(in)
-            .fmap([&](auto vec)
+            .fmap([&](const auto& vec)
             {
                 assert(vec.size() == 6);
                 rgb color;
@@ -356,6 +357,17 @@ struct p_literal_bool : p_parser<node_ptr>
     }
 };
 
+struct p_literal_number : p_parser<node_ptr>
+{
+    p_unsigned<> parser;
+
+    maybe<node_ptr> operator()(input& in)
+    {
+        return parser(in)
+            .fmap([](unsigned val) { return make_node<literal_number>(val); });
+    }
+};
+
 struct p_composite_color : p_parser<node_ptr>
 {
     maybe<node_ptr> operator()(input& in);
@@ -382,6 +394,7 @@ struct p_node : p_parser<node_ptr>
                                   p_literal_color,
                                   p_literal_bool,
                                   p_literal_separator,
+                                  p_literal_number,
                                   p_call,
                                   p_composite_color,
                                   p_composite_segment>
@@ -394,8 +407,11 @@ struct p_node : p_parser<node_ptr>
 
 maybe<node_ptr> p_call::operator()(input& in)
 {
+    using p_name = p_str_pred<pred_or<is_char<'_'>, is_alpha>, 1>;
+    // using p_name = p_str_pred<is_alpha, 1>;
+
     auto parser = p_between<p_suffixed<p_char<'('>, p_space>,
-                            p_after<p_suffixed<p_alpha_str<1>, p_space>,
+                            p_after<p_suffixed<p_name, p_space>,
                                     p_many<p_node>>,
                             p_char<')'>>{};
 

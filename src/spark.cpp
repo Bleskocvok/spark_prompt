@@ -149,8 +149,28 @@ struct pwd_t : builtin_func<>
 {
     evaluated perform() override
     {
-        static const size_t max_size = 35;
+        char* buffer = std::getenv("PWD");
+        if (buffer == nullptr)
+            return std::string{};
 
+        std::string result = buffer;
+
+        struct passwd* user_info = ::getpwuid(::geteuid());
+        std::string home = user_info->pw_dir;
+
+        if (result.substr(0, home.size()) == home)
+        {
+            result.erase(1, home.size() - 1);
+            result.front() = '~';
+        }
+        return result;
+    }
+};
+
+struct pwd_limited_t : builtin_func<typ::integer>
+{
+    evaluated perform(unsigned max_size) override
+    {
         char* buffer = std::getenv("PWD");
         if (buffer == nullptr)
             return std::string{};
@@ -267,9 +287,9 @@ int main(int argc, char** argv)
     USE_INVIS = !params.preview || params.validate;
 
     static const auto default_code =
-    "[ { #eeeeEe #ff11ff '' } (user) >> ]"
-    "[ { #eeeeEe #bb00bb '' } (host) >> ]"
-    "[ { #eeeeEe #ff11ff '' } (pwd)  >> ]"s;
+        "[ { #eeeeEe #ff11ff '' } (user) >> ]"
+        "[ { #eeeeEe #bb00bb '' } (host) >> ]"
+        "[ { #eeeeEe #ff11ff '' } (pwd_limited 35)  >> ]"s;
 
     const char* env_value = std::getenv("SPARK_THEME");
     auto code = env_value == nullptr ? default_code
@@ -293,6 +313,7 @@ int main(int argc, char** argv)
     eval.add_func("exit", std::make_unique<exit_t>(params.exit_code));
     eval.add_func("if", std::make_unique<if_then_else_t>());
     eval.add_func("pwd", std::make_unique<pwd_t>());
+    eval.add_func("pwd_limited", std::make_unique<pwd_limited_t>());
     eval.add_func("user", std::make_unique<username_t>());
     eval.add_func("host", std::make_unique<hostname_t>());
 

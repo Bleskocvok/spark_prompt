@@ -36,6 +36,24 @@ auto lift2(F2&& f2, A&& a, B&& b)
 
 constexpr unsigned MAX_SIZE = -1;
 
+
+//
+// predicates
+//
+struct is_space;
+struct is_digit;
+struct is_alpha;
+struct is_hex;
+template<char C>
+struct is_char;
+template<typename A, typename B>
+struct pred_or;
+template<typename A, typename B>
+struct pred_and;
+template<typename Pred>
+struct pred_not;
+
+
 //
 // parser objects
 //
@@ -52,8 +70,8 @@ struct p_char;
 template<char... Chars>
 struct p_string;
 
-template<unsigned MinLen = 0>
-struct p_alpha_str;
+template<typename Pred, unsigned MinLen = 0>
+struct p_str_pred;
 
 template<char Quote = '"', char Esc = '\\'>
 struct p_quoted;
@@ -95,6 +113,8 @@ template<typename P>
 using p_spaces_before = p_prefixed<p_space, P>;
 template<typename P>
 using p_spaces_around = p_spaces_before<p_spaces_after<P>>;
+template<unsigned MinLen = 0>
+using p_alpha_str = p_str_pred<is_alpha>;
 
 // -----------------------------------------------------------------------------
 // IMPLEMENTATION
@@ -107,7 +127,7 @@ struct fail
     std::string msg;
 
     template<typename ... Args>
-    fail(Args&& ... args)
+    explicit fail(Args&& ... args)
     {
         auto ss = std::stringstream{};
         ( (ss << args), ... );
@@ -266,6 +286,29 @@ struct is_hex
                                                  || (c >= '0' && c <= '9'); }
 };
 
+template<char C>
+struct is_char
+{
+    bool operator()(unsigned char c) const { return c == C; }
+};
+
+template<typename A, typename B>
+struct pred_or
+{
+    bool operator()(unsigned char c) const { return A{}(c) || B{}(c); }
+};
+
+template<typename A, typename B>
+struct pred_and
+{
+    bool operator()(unsigned char c) const { return A{}(c) && B{}(c); }
+};
+
+template<typename Pred>
+struct pred_not
+{
+    bool operator()(unsigned char c) const { return !Pred{}(c); }
+};
 
 
 // -----------------------------------------------------------------------------
@@ -673,17 +716,18 @@ struct p_suffixed : p_parser<typename T::value_type>
 
 
 
-template<unsigned MinLen>
-struct p_alpha_str : p_parser<std::string>
+template<typename Pred, unsigned MinLen>
+struct p_str_pred : p_parser<std::string>
 {
-    p_many<p_one_pred<is_alpha>, MinLen> parser;
+    p_many<p_one_pred<Pred>, MinLen> parser;
 
     maybe<std::string> operator()(input& in)
     {
-        return parser(in).fmap([](auto vec)
-        {
-            return std::string(vec.begin(), vec.end());
-        });
+        return parser(in)
+            .fmap([](const auto& vec)
+            {
+                return std::string(vec.begin(), vec.end());
+            });
     }
 };
 

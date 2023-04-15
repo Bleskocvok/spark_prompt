@@ -9,7 +9,7 @@
 #include <stdexcept>    // runtime_error
 
 
-// TODO: perhaps improve complexity or whatever
+// TODO: improve this awful complexity
 inline void remove_redundant(std::string& str)
 {
     const auto redundant = std::string{ "\\]\\[" };
