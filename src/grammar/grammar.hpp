@@ -76,25 +76,21 @@ node_ptr make_node(Args&&... args)
 }
 
 
-template<typename Beg,
-         typename End,
-         typename Func,
-         typename T, template<typename> typename Vec>
+template<typename Func,
+         typename T, template<typename...> typename Vec>
 std::ostream& print_separated(std::ostream& out,
-                              const Beg& beg,
-                              const End& end,
                               const Vec<T>& vec,
-                              Func print_elem)
+                              Func print_elem,
+                              const char* sep_string = " ")
 {
-    out << beg;
     const char* sep = "";
     for (const auto& elem : vec)
     {
         out << sep;
-        sep = " ";
+        sep = sep_string;
         print_elem(elem);
     }
-    return out << end;
+    return out;
 }
 
 
@@ -201,11 +197,13 @@ struct call
 inline std::ostream& operator<<(std::ostream& out,
                                 const composite_color& a)
 {
-    return print_separated(out, "{ ", " }", a.args,
+    out << "{ ";
+    return print_separated(out, a.args,
                 [&](const auto& ptr)
                 {
                     std::visit([&](const auto& val) { out << val; }, *ptr);
-                });
+                })
+            << " }";
 }
 
 
@@ -216,21 +214,24 @@ inline std::ostream& operator<<(std::ostream& out, const call& a)
     if (!a.args.empty())
         out << " ";
 
-    return print_separated(out, "", ")", a.args,
+    return print_separated(out, a.args,
                 [&](const auto& ptr)
                 {
                     std::visit([&](const auto& val) { out << val; }, *ptr);
-                });
+                })
+            << ")";
 }
 
 
 inline std::ostream& operator<<(std::ostream& out, const composite_segment& a)
 {
-    return print_separated(out, "[ ", " ]", a.args,
+    out << "[ ";
+    return print_separated(out, a.args,
                 [&](const auto& ptr)
                 {
                     std::visit([&](const auto& val) { out << val; }, *ptr);
-                });
+                })
+            << " ]";
 }
 
 

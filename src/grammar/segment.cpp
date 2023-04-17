@@ -35,7 +35,7 @@ size_t sep_len(sep s)
 }
 
 
-void render_sep(std::ostream& out, sep s, color fg, color bg, color next_bg)
+void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
 {
     static const auto arrow = "\uE0B0"s;
     static const auto pseudo = "▶"s;

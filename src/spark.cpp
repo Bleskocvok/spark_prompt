@@ -145,6 +145,20 @@ struct hostname_t : builtin_func<>
     }
 };
 
+inline bool replace_home(std::string& str)
+{
+    struct passwd* user_info = ::getpwuid(::geteuid());
+    std::string home = user_info->pw_dir;
+
+    if (str.substr(0, home.size()) == home)
+    {
+        str.erase(1, home.size() - 1);
+        str.front() = '~';
+        return true;
+    }
+    return false;
+}
+
 struct pwd_t : builtin_func<>
 {
     evaluated perform() override
@@ -155,14 +169,8 @@ struct pwd_t : builtin_func<>
 
         std::string result = buffer;
 
-        struct passwd* user_info = ::getpwuid(::geteuid());
-        std::string home = user_info->pw_dir;
+        replace_home(result);
 
-        if (result.substr(0, home.size()) == home)
-        {
-            result.erase(1, home.size() - 1);
-            result.front() = '~';
-        }
         return result;
     }
 };
@@ -180,11 +188,7 @@ struct pwd_limited_t : builtin_func<typ::integer>
         struct passwd* user_info = ::getpwuid(::geteuid());
         std::string home = user_info->pw_dir;
 
-        if (result.substr(0, home.size()) == home)
-        {
-            result.erase(1, home.size() - 1);
-            result.front() = '~';
-        }
+        replace_home(result);
 
         if (result.size() > max_size)
         {

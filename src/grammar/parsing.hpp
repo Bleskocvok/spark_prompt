@@ -21,7 +21,7 @@
 
 
 struct fail;
-struct input;
+class input;
 
 // Either fail T
 template<typename T>
