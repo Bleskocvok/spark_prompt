@@ -7,7 +7,7 @@
 #include <vector>       // vector
 #include <functional>   // invoke, forward, ref
 #include <type_traits>  // remove_cv, remove_reference, invoke_result,
-                        // is_invocable_v, is_constructible, decay_t
+                        // is_invocable_v, is_constructible, decay_t, is_enum_v
 #include <string_view>  // string_view
 #include <set>          // set
 #include <sstream>      // stringstream
@@ -69,6 +69,9 @@ struct p_char;
 
 template<char... Chars>
 struct p_string;
+
+template<typename T, T t, char... Chars>
+struct p_enum;
 
 template<typename Pred, unsigned MinLen = 0>
 struct p_str_pred;
@@ -894,5 +897,24 @@ struct p_many_sep_by : p_parser<std::vector<typename P::value_type>>
             return fail("p_many_sep_by: trailing separator");
 
         return result;
+    }
+};
+
+
+
+template<typename T, T Value, char... Chars>
+struct p_enum : p_parser<T>
+{
+    static_assert(std::is_enum_v<T>, "T needs to be an enum type");
+
+    p_string<Chars...> parser;
+
+    maybe<T> operator()(input& in)
+    {
+        return parser(in)
+            .fmap([](const auto&)
+            {
+                return Value;
+            });
     }
 };

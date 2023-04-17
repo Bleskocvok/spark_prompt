@@ -326,7 +326,7 @@ struct evaluator
 
         evaluated operator()(const literal_effect& l) { return std::string{}; }
 
-        evaluated operator()(const literal_separator& l) { return sep::powerline; }
+        evaluated operator()(const literal_separator& l) { return l.data; }
 
         evaluated operator()(const literal_color& l) { return color{ l.data }; }
 

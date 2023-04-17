@@ -8,7 +8,7 @@
 #include <string>       // string
 
 
-enum class sep
+enum class sep : unsigned
 {
     empty,
     space,

@@ -123,6 +123,10 @@ struct literal_color
 struct literal_effect
 {
     effect data;
+
+    // TODO
+
+    literal_effect(std::string) {}
     literal_effect(effect data) : data(data) {}
 
     friend std::ostream& operator<<(std::ostream& out, const literal_effect& a)
@@ -134,13 +138,13 @@ struct literal_effect
 
 struct literal_separator
 {
-    std::string data;
-    literal_separator(std::string data) : data(std::move(data)) {}
+    sep data;
+    literal_separator(sep data) : data(data) {}
 
     friend std::ostream& operator<<(std::ostream& out,
                                     const literal_separator& a)
     {
-        return out << a.data;
+        return out << "sep<" << unsigned(a.data) << ">";
     }
 };
 
@@ -312,31 +316,31 @@ struct p_literal_effect : p_parser<node_ptr>
         return parser(in)
             .fmap([&](auto& str)
             {
-                return make_node<literal_separator>(std::move(str));
+                return make_node<literal_effect>(std::move(str));
             });
     }
 };
 
 struct p_literal_separator : p_parser<node_ptr>
 {
-    p_try_seq<std::string,
-              p_string<':', '>'>,   // powerline
-              p_string<'<', ':'>,
-              p_string<'>', '>'>,   // thick powerline
-              p_string<'/', '/'>,   // slope
-              p_string<'\\', '\\'>,
-              p_string<'<', '<'>,
-              p_string<'~'>,        // space
-              p_string<'-', '-'>,   // fill
-              p_string<'V'>         // newline
+    p_try_seq<sep,
+              p_enum<sep, sep::powerline, ':', '>'>,   // powerline
+              p_enum<sep, sep::rpowerline, '<', ':'>,
+              p_enum<sep, sep::powerline_space, '>', '>'>,   // thick powerline
+              p_enum<sep, sep::empty, '/', '/'>,   // slope
+              p_enum<sep, sep::empty, '\\', '\\'>,
+              p_enum<sep, sep::rpowerline_space, '<', '<'>,
+              p_enum<sep, sep::space, '~'>,        // space
+            //   p_enum<sep, sep::fill, '-', '-'>,   // fill
+              p_enum<sep, sep::newline, 'V'>         // newline
               > parser;
 
     maybe<node_ptr> operator()(input& in)
     {
         return parser(in)
-            .fmap([&](auto& str)
+            .fmap([&](sep val)
             {
-                return make_node<literal_separator>(std::move(str));
+                return make_node<literal_separator>(val);
             });
     }
 };

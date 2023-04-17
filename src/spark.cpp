@@ -293,7 +293,7 @@ int main(int argc, char** argv)
     static const auto default_code =
         "[ { #eeeeEe #ff11ff '' } (user) >> ]"
         "[ { #eeeeEe #bb00bb '' } (host) >> ]"
-        "[ { #eeeeEe #ff11ff '' } (pwd_limited 35)  >> ]"s;
+        "[ { #eeeeEe #ff11ff '' } (pwd_limited 35)  :> ]"s;
 
     const char* env_value = std::getenv("SPARK_THEME");
     auto code = env_value == nullptr ? default_code
