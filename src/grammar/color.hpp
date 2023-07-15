@@ -52,6 +52,10 @@ struct rgb
     std::uint8_t r = 255,
                  g = 255,
                  b = 255;
+
+    rgb() = default;
+
+    rgb(std::uint8_t r, std::uint8_t g, std::uint8_t b) : r(r), g(g), b(b) {}
 };
 
 

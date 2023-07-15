@@ -1,5 +1,5 @@
 
-CXXFLAGS ?= -std=c++17 -pedantic -Wall -Wextra -O2
+CXXFLAGS ?= -std=c++20 -pedantic -Wall -Wextra -O2
 
 CPPFLAGS += \
 	-I src/         \
@@ -7,14 +7,14 @@ CPPFLAGS += \
 	-I src/parsing
 
 TARGET = spark
+
 SRC = \
 	src/spark.cpp \
-	src/parsing/parse.cpp \
 	src/grammar/style.cpp \
 	src/grammar/segment.cpp \
-	src/grammar/color.cpp \
-	src/standard.cpp
-OBJ = $(patsubst src/%.cpp,obj/%.o,$(SRC))
+	src/grammar/color.cpp
+
+OBJ = $(patsubst src/%.cpp,.obj/%.o,$(SRC))
 DEPEND = $(OBJ:.o=.d)
 
 
@@ -23,24 +23,23 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
+.obj/:
+	mkdir -p .obj/
+	mkdir -p .obj/grammar
+	mkdir -p .obj/parsing
 
-obj/%.o: src/%.cpp
+.obj/%.o: src/%.cpp .obj/
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-obj/%.o: CXXFLAGS += -MMD -MP
+.obj/%.o: CXXFLAGS += -MMD -MP
 
 
 -include $(DEPEND)
 
 
-prepare:
-	mkdir -p obj/
-	mkdir -p obj/grammar
-	mkdir -p obj/parsing
-
-
 clean:
 	$(RM) $(OBJ) $(DEPEND)
+	$(RM) -r .obj/
 
 distclean: clean
 	$(RM) $(TARGET)

@@ -69,6 +69,12 @@ auto typ_to_str(typ t) -> const char*
 }
 
 
+typ typ_of(const evaluated& val)
+{
+    return static_cast<typ>(val.index());
+}
+
+
 template<typ Type>
 struct get_type
 {
@@ -246,7 +252,8 @@ struct evaluator
                 if (is_fail(res))
                     return std::get<fail>(res);
 
-                return fail("type mismatch: needs to be ‹segment›");
+                return fail("type mismatch: needs to be ‹segment›, "
+                            "but is type ‹", typ_to_str(typ_of(res)), "›");
             }
 
             segments.push_back(std::move(std::get<segment>(res)));
@@ -324,7 +331,8 @@ struct evaluator
 
         evaluated operator()(const literal_bool& l) { return l.value; }
 
-        evaluated operator()(const literal_effect& l) { return std::string{}; }
+        // TODO
+        evaluated operator()(const literal_effect&) { return std::string{}; }
 
         evaluated operator()(const literal_separator& l) { return l.data; }
 

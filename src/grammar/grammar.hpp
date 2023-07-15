@@ -197,7 +197,6 @@ struct call
 };
 
 
-
 inline std::ostream& operator<<(std::ostream& out,
                                 const composite_color& a)
 {
@@ -324,15 +323,20 @@ struct p_literal_effect : p_parser<node_ptr>
 struct p_literal_separator : p_parser<node_ptr>
 {
     p_try_seq<sep,
-              p_enum<sep, sep::powerline, ':', '>'>,   // powerline
-              p_enum<sep, sep::rpowerline, '<', ':'>,
+              p_enum<sep, sep::powerline,       ':', '>'>,   // powerline
+              p_enum<sep, sep::rpowerline,      '<', ':'>,
+
               p_enum<sep, sep::powerline_space, '>', '>'>,   // thick powerline
-              p_enum<sep, sep::empty, '/', '/'>,   // slope
-              p_enum<sep, sep::empty, '\\', '\\'>,
-              p_enum<sep, sep::rpowerline_space, '<', '<'>,
-              p_enum<sep, sep::space, '~'>,        // space
+
+            //   TODO: solve same prefix problem
+              p_enum<sep, sep::rpowerline_space,'<', '<'>,
+
+              p_enum<sep, sep::empty,           '/', '/'>,   // slope
+              p_enum<sep, sep::empty,           '\\', '\\'>,
+
+              p_enum<sep, sep::space,           '~'>,        // space
             //   p_enum<sep, sep::fill, '-', '-'>,   // fill
-              p_enum<sep, sep::newline, 'V'>         // newline
+              p_enum<sep, sep::newline,         'V'>         // newline
               > parser;
 
     maybe<node_ptr> operator()(input& in)
@@ -415,8 +419,8 @@ maybe<node_ptr> p_call::operator()(input& in)
     using p_name = p_str_pred<pred_or<is_char<'_'>, is_alpha>, 1>;
     // using p_name = p_str_pred<is_alpha, 1>;
 
-    auto parser = p_between<p_suffixed<p_char<'('>, p_space>,
-                            p_after<p_suffixed<p_name, p_space>,
+    auto parser = p_between<p_spaces_after<p_char<'('>>,
+                            p_after<p_spaces_after<p_name>,
                                     p_many<p_node>>,
                             p_char<')'>>{};
 

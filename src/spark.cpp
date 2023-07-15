@@ -119,6 +119,8 @@
 
 
 #include <iostream>
+#include <optional>
+#include <string>
 
 // POSIX
 #include <unistd.h>     // posix, geteuid, gethostname, getcwd
@@ -199,6 +201,20 @@ struct pwd_limited_t : builtin_func<typ::integer>
     }
 };
 
+struct rgb_t : builtin_func<typ::integer, typ::integer, typ::integer>
+{
+    evaluated perform(unsigned r, unsigned g, unsigned b) override
+    {
+        if (r > 255) return fail("r > 255");
+        if (g > 255) return fail("g > 255");
+        if (b > 255) return fail("b > 255");
+
+        return rgb{ std::uint8_t(r),
+                    std::uint8_t(g),
+                    std::uint8_t(b) };
+    }
+};
+
 struct exit_t : builtin_func<>
 {
     int value = 0;
@@ -223,12 +239,30 @@ struct if_then_else_t : builtin_func<typ::boolean, typ::any, typ::any>
 };
 
 
+struct append_t : builtin_func<typ::string, typ::string>
+{
+    evaluated perform(std::string a, std::string b) override
+    {
+        return a += b;
+    }
+};
+
+
+struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
+{
+    evaluated perform(std::string a, std::string b, std::string c) override
+    {
+        return (a += b) += c;
+    }
+};
+
 
 struct params_t
 {
     bool preview = false;
     bool validate = false;
     int exit_code = 0;
+    std::optional<std::string> theme;
 };
 
 
@@ -239,16 +273,22 @@ inline params_t parse_params(int argc, const char* const* argv)
     for (int i = 1; i < argc; i++)
     {
         auto arg = std::string_view{ argv[i] };
-        if (arg.find("--") == 0)
+
+
+        if (arg == "--preview" || arg == "-p")
         {
-            if (arg.substr(2) == "preview")
-            {
-                params.preview = true;
-            }
-            else if (arg.substr(2) == "validate")
-            {
-                params.validate = true;
-            }
+            params.preview = true;
+        }
+        else if (arg == "--validate" || arg == "-v")
+        {
+            params.validate = true;
+        }
+        else if (arg == "--theme" || arg == "-t")
+        {
+            if (i == argc)
+                throw std::runtime_error("--theme THEME\nmissing operand");
+            params.theme = argv[i + 1];
+            ++i;
         }
         else
         {
@@ -272,8 +312,8 @@ inline void output_style(const style& stl)
 }
 
 
-template<typename Prefix>
-void output_error(const Prefix& prefix, const fail& err)
+template<typename Prefix, typename Err>
+void output_error(const Prefix& prefix, const Err& err)
 {
     std::cerr << prefix << err << "\n";
 }
@@ -286,18 +326,43 @@ int main(int argc, char** argv)
     if (!set_locale())
         return 1;
 
-    params_t params = parse_params(argc, argv);
+    params_t params;
+    try
+    {
+        params = parse_params(argc, argv);
+    }
+    catch (std::exception& ex)
+    {
+        output_error("ERROR: ", ex.what());
+        return 1;
+    }
+
     // TODO: solve edge cases
-    USE_INVIS = !params.preview || params.validate;
+    USE_INVIS = !params.preview && !params.validate;
+
+    // TODO: examples
+    // add to examples
+    // static const auto default_code =
+    //     "[ { #eeeeEe #ff11ff '' } (user) >> ]"
+    //     "[ { #eeeeEe #bb00bb '' } (host) >> ]"
+    //     "[ { #eeeeEe #ff11ff '' } (pwd_limited 35)  :> ]"s;
 
     static const auto default_code =
-        "[ { #eeeeEe #ff11ff '' } (user) >> ]"
-        "[ { #eeeeEe #bb00bb '' } (host) >> ]"
-        "[ { #eeeeEe #ff11ff '' } (pwd_limited 35)  :> ]"s;
+        "[ { #ffffff (if (exit) #4F7D27 #750404) '' }"
+            "(if (exit) ' ✓ ' ' × ') >> ]"
+        "[ { #ffffff #005BBB '' } (fmt ' ' (user) ' ') :> ]"
+        "[ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') >> ]"
+        "[ { #ffffff #05529E '' } (fmt ' ' (pwd_limited 35) ' ') >> ]"
+        "[ { #ffffff #005BBB '' } '' :> ]"
+        "[ { #000000 #FFD500 '' } '' :> ]";
+
 
     const char* env_value = std::getenv("SPARK_THEME");
     auto code = env_value == nullptr ? default_code
                                      : std::string{ env_value };
+
+    if (params.theme)
+        code = *params.theme;
 
     auto in = input(code);
 
@@ -320,6 +385,9 @@ int main(int argc, char** argv)
     eval.add_func("pwd_limited", std::make_unique<pwd_limited_t>());
     eval.add_func("user", std::make_unique<username_t>());
     eval.add_func("host", std::make_unique<hostname_t>());
+    eval.add_func("rgb", std::make_unique<rgb_t>());
+    eval.add_func("append", std::make_unique<append_t>());
+    eval.add_func("fmt", std::make_unique<fmt_t>());
 
     maybe<style> result = eval(node);
 

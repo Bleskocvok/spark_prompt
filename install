@@ -3,12 +3,11 @@
 
 make
 
-sudo cp ./spark /usr/local/bin/spark
+sudo install -D -m 755 ./spark /usr/local/bin/spark
 
-sudo cp ./sptheme /usr/local/bin/sptheme
+# sudo install -D -m 755 ./sptheme /usr/local/bin/sptheme
 
-mkdir -p ~/.spark
-touch ~/.spark/themes
+# install -D -m 644 ~/.spark/themes
 
 
 # remove old first
