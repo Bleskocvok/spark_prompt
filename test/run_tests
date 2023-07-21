@@ -52,6 +52,7 @@ pass "[ { ( rgb 0 1 0 ) #ff11ff '' }  ( user ) >> ]"
 pass "[{( rgb 0 1 0 )#ff11ff ''}( user )>>]"
 pass "   [{( rgb 0 1 0 )#ff11ff ''}( user )>>]    "
 pass "[ { (rgb 255 255 255) #ff11ff '' }  (user) >> ]"
+pass "(if (exit) [ { #fF11Ff #ff11ff '' }  (user) >> ] [ { #fF11Ff #ff11ff '' }  (user) >> ] )"
 
 fail "[ { (rgb 255 -1 255) #ff11ff '' }  (user) >> ]"
 fail "[ { (rgb 255 -255 255) #ff11ff '' }  (user) >> ]"
