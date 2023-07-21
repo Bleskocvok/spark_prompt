@@ -11,3 +11,20 @@ Syntax example:
 [ { #000000 #FFD500 '' } '' :> ]
 ```
 
+## Installation
+
+```sh
+git clone https://github.com/Bleskocvok/spark_prompt
+cd spark_prompt
+make all
+bash ./nosudo_install
+```
+
+Or alternatively:
+
+```sh
+git clone https://github.com/Bleskocvok/spark_prompt
+cd spark_prompt
+make all
+sudo bash ./install 
+```

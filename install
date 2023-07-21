@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 
 
-make
+make || exit 1
 
 sudo install -D -m 755 ./spark /usr/local/bin/spark
-
-# sudo install -D -m 755 ./sptheme /usr/local/bin/sptheme
-
-# install -D -m 644 ~/.spark/themes
 
 
 # remove old first
