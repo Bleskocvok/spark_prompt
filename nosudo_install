@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
 
 
-make
+make || exit 1
 
-cp ./spark ~/.spark/spark
-
-cp ./sptheme ~/.spark/sptheme
-
-mkdir -p ~/.spark
-touch ~/.spark/themes
-
+install -D -m 755 -T ./spark ~/.spark/spark
 
 # remove old first
 sed -i '/# spark start/,/# spark end/d' ~/.bashrc
@@ -19,7 +13,6 @@ echo '
 # spark start
 
 alias spark=~/.spark/spark
-alias sptheme=~/.spark/sptheme
 
 function _update_spark_prompt()
 {
