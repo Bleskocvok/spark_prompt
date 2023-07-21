@@ -1,0 +1,62 @@
+#!/bin/bash
+
+
+# run from ../ as
+#     test/run_tests
+
+
+function sptest()
+{
+    export SPARK_THEME="$1"
+    ./spark --validate
+    # ./spark --validate --theme "$1"
+}
+
+
+make || { echo "MAKE FAILED";  exit 1; }
+
+
+source test/tester
+set_app  sptest
+mode_arg
+
+# pass "[]"
+# pass "[] >>"
+# pass "[ ' ' ]"
+# pass "[ ~ ]"
+# pass "[ ~ ] :> []"
+
+# pass "(white;black;italic)[ ~ ] :> newline ~ :> (white;black;italic)[ 'ahoj' ]"
+
+# # sptest "[ ' ' ] >> [ {white;4,56,107} ][ {1,2,3;5,82,4} ] :> [ { 2 , 2 , 2 ; #012345 } ] "
+
+# # sptest "[ ' ' \\exit(✓, ×) ] >> [ {white;4,56,107} \\username() '@' \\hostname ] ' [ {255,255,255;5,82,158} \\pwd ] :> "
+
+
+# : \a x y = x
+
+
+# : "[ ' ' . \exit(✓, ×) ] >> [ {white;4,56,107} \username() '@' \hostname ] >> [ {255,255,255;5,82,158} \pwd ] :> "
+
+pass ''
+
+pass "[ { #eeeeEe #ff11ff \"\" } (user) >> ]"
+
+pass "[ { #eeeeEe #ff11ff '' } (user) >> ] 
+      [ { #eeeeEe #bb00bb '' } (host) >> ]
+      [ { #eeeeEe #ff11ff '' } (pwd_limited 35)  :> ]"
+
+pass "[ { #eeeeEe     #ff11ff '' } 'hello' >> ]"
+pass "[ { (rgb 0 1 0) #ff11ff '' }  (user) >> ]"
+pass "[ { ( rgb 0 1 0 ) #ff11ff '' }  ( user ) >> ]"
+pass "[{( rgb 0 1 0 )#ff11ff ''}( user )>>]"
+pass "   [{( rgb 0 1 0 )#ff11ff ''}( user )>>]    "
+pass "[ { (rgb 255 255 255) #ff11ff '' }  (user) >> ]"
+pass "(if (exit) [ { #fF11Ff #ff11ff '' }  (user) >> ] [ { #fF11Ff #ff11ff '' }  (user) >> ] )"
+
+fail "[ { (rgb 255 -1 255) #ff11ff '' }  (user) >> ]"
+fail "[ { (rgb 255 -255 255) #ff11ff '' }  (user) >> ]"
+fail "[ { (rgb 255 1024 255) #ff11ff '' }  (user) >> ]"
+
+
+all_ok

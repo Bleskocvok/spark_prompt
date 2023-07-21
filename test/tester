@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+B='\033[1m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+LGREY='\033[1;90m'
+NC='\033[0m'
+PASS_NOK='nok; expected PASS, but failed:\t\t'
+FAIL_NOK='nok; expected FAIL, but passed:\t\t'
+FAIL_OUT='nok; expected output is different'
+
+MODE="arg"
+
+if [ "$1" = "help" ] || [ "$1" = "--help" ]; then
+    printf "usage:
+        source %s
+        set_app './MY_PROGRAM'
+        check \"arg_to_program\" \"expected_result\"
+" "$0"
+    exit 1
+fi
+
+function set_app()    { APP="$1";     }
+function mode_input() { MODE="input"; }
+function mode_arg()   { MODE="arg";   }
+
+function ind() { sed "s/^/\t/g"; }
+
+function ok() { echo -e "${B}${GREEN}ok${NC}" | ind; }
+
+function header()
+{
+    echo ''
+    echo -e "${B}${APP}${NC} $*${LGREY}"
+    echo $OUTPUT | ind | head -n 3
+}
+
+function perform()
+{
+    if [ "$MODE" = "arg" ]; then
+        OUTPUT=$(2>&1 $APP "$@")
+    elif [ "$MODE" = "input" ]; then
+        OUTPUT=$(2>&1 $APP <<< "$@")
+    else
+        echo "ERROR: invalid MODE value, expected 'arg' or 'input'"
+        exit 1
+    fi
+
+    RETVAL="$?"
+    return $RETVAL
+}
+
+function pass()
+{
+    perform "$@"
+    header "$@"
+    [ "$RETVAL" = 0 ] || {
+        echo -e "${RED}${PASS_NOK}${APP} $* ${NC}" | ind;
+        exit 1;
+    }
+    ok
+}
+
+function fail()
+{
+    perform "$@"
+    header "$@"
+    [ "$RETVAL" = 0 ] && {
+        echo -e "${RED}${FAIL_NOK}${APP} $* ${NC}" | ind;
+        exit 1;
+    }
+    ok
+}
+
+function check()
+{
+    EXPECTED="$1"
+    shift
+
+    perform "$@"
+    header "$@"
+    [ "$RETVAL" = 0 ] || {
+        echo -e "${RED}${PASS_NOK}${APP} $* ${NC}" | ind;
+        exit 1;
+    }
+
+    if [ "$OUTPUT" != "$EXPECTED" ]; then
+        {
+            echo -e "${RED}${FAIL_OUT}${NC}"
+            echo -e "expected: $LGREY'$EXPECTED'$NC"
+            echo -e "received: $LGREY'$OUTPUT'$NC"
+        } | ind;
+        exit 1
+    fi
+
+    ok
+}
+
+function all_ok()
+{
+    echo ''
+    echo -e "${GREEN}all tests passed!${NC}"
+}

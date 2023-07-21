@@ -1,10 +1,13 @@
-
 #include "standard.hpp"
 
+// c
+#include <cstdlib>      // getenv
+
+// POSIX
 #include <unistd.h>     // posix, geteuid, gethostname, getcwd
 #include <sys/types.h>  // geteuid, getpwuid
 #include <pwd.h>        // getpwuid
-#include <limits.h>     // PATH_MAX
+// #include <limits.h>     // PATH_MAX
 
 // // only linux
 // #include <sys/sysinfo.h>
@@ -35,10 +38,10 @@ std::variant<std::string, err> exit_t::perform(segment& seg)
 
     if (exit_code() == 0)
     {
-        seg.bg = rgb{ 79, 125, 39 };
+        seg.th.bg = rgb{ 79, 125, 39 };
         return ok;
     }
-    seg.bg = rgb{ 117, 4, 4 };
+    seg.th.bg = rgb{ 117, 4, 4 };
     return nok;
 }
 
@@ -47,7 +50,7 @@ std::variant<std::string, err> pwd_t::perform(segment&)
 {
     // using namespace std::string_literals;
 
-    char* buffer = getenv("PWD");
+    char* buffer = std::getenv("PWD");
     if (buffer == nullptr)
         return "";
 
