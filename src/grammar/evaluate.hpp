@@ -108,7 +108,7 @@ struct func
     explicit func(std::vector<typ> expected) : expected(std::move(expected))
     { }
 
-    virtual evaluated operator()(const eval_vec&)
+    virtual evaluated operator()(eval_vec)
     {
         return fail("operator() not implemented");
     }
@@ -122,6 +122,15 @@ struct func
             return val;
         else
             return std::get<get_type_t<Idx>>(val);
+    }
+
+    template<typ Idx>
+    auto get(eval_vec&& vec, int i) -> get_type_t<Idx>
+    {
+        if constexpr (Idx == typ::any)
+            return std::move(vec[i]);
+        else
+            return std::move(std::get<get_type_t<Idx>>(vec[i]));
     }
 
     auto check_types(const eval_vec& args)
@@ -160,7 +169,7 @@ struct builtin_func : func
     builtin_func() : func(std::vector<typ>{ Types... })
     { }
 
-    evaluated operator()(const eval_vec& args) override
+    evaluated operator()(eval_vec args) override
     {
         if constexpr (sizeof...(Types) == 0)
         {
@@ -171,9 +180,9 @@ struct builtin_func : func
             auto pack = std::tuple<get_type_t<Types>...>();
             fill_tuple<0, decltype(pack), Types...>(pack, args);
 
-            return std::apply([&](auto&&... params)
+            return std::apply([&](auto... params)
             {
-                return perform(params...);
+                return perform(std::move(params)...);
 
             }, std::move(pack));
         }
@@ -186,10 +195,10 @@ struct builtin_func : func
 
     template<int N = 0, typename Tuple, typ Typ, typ... Nxt>
     void fill_tuple(Tuple& out,
-                    const eval_vec& args)
+                    eval_vec& args)
     {
         assert(N < args.size());
-        std::get<N>(out) = func::get<Typ>(args, N);
+        std::get<N>(out) = std::move(func::get<Typ>(args, N));
 
         if constexpr (sizeof...(Nxt) > 0)
             fill_tuple<N + 1, Tuple, Nxt...>(out, args);
@@ -210,7 +219,7 @@ struct mk_segment : builtin_func<typ::theme, typ::string, typ::sep>
 {
     evaluated perform(theme th, std::string str, sep s) override
     {
-        return segment{ str, th, s };
+        return segment{ std::move(str), std::move(th), s };
     }
 };
 
@@ -238,14 +247,14 @@ struct evaluator
                     std::make_unique<T>(std::forward<Args>(args)...)).second;
     }
 
-    auto operator()(const std::vector<node_ptr>& nodes) -> maybe<style>
+    auto operator()(std::vector<node_ptr> nodes) -> maybe<style>
     {
         auto segments = std::vector<segment>{};
         segments.reserve(nodes.size());
 
-        for (const auto& ptr : nodes)
+        for (auto& ptr : nodes)
         {
-            auto res = eval(ptr);
+            auto res = eval(std::move(ptr));
 
             if (!is_segment(res))
             {
@@ -262,19 +271,21 @@ struct evaluator
         return style{ std::move(segments) };
     }
 
-    evaluated eval(const node_ptr& ptr)
+    evaluated eval(node_ptr ptr)
     {
         auto performer = visitor(funcs);
-        return std::visit(performer, *ptr);
+        return std::visit(performer, std::move(*ptr));
     }
 
     struct visitor
     {
         functions_t& functions;
 
+        // eval_vec buf;
+
         visitor(functions_t& functions) : functions(functions) {}
 
-        eval_vec operator()(const std::vector<node_ptr>& args)
+        eval_vec operator()(std::vector<node_ptr> args)
         {
             // TODO: reuse this buffer in all visits of this visitor
             // (turn this into an attribute)
@@ -284,14 +295,14 @@ struct evaluator
             buf.reserve(args.size());
 
             for (auto& ptr : args)
-                buf.push_back(std::visit(*this, *ptr));
+                buf.push_back(std::visit(*this, std::move(*ptr)));
 
             return buf;
         }
 
-        evaluated operator()(const composite_color& com)
+        evaluated operator()(composite_color com)
         {
-            auto args = (*this)(com.args);
+            auto args = (*this)(std::move(com.args));
             auto mk = mk_theme{};
             auto err = mk.check_types(args);
             if (err)
@@ -299,9 +310,9 @@ struct evaluator
             return mk(std::move(args));
         }
 
-        evaluated operator()(const composite_segment& com)
+        evaluated operator()(composite_segment com)
         {
-            auto args = (*this)(com.args);
+            auto args = (*this)(std::move(com.args));
             auto mk = mk_segment{};
             auto err = mk.check_types(args);
             if (err)
@@ -309,14 +320,14 @@ struct evaluator
             return mk(std::move(args));
         }
 
-        evaluated operator()(const call& com)
+        evaluated operator()(call com)
         {
             auto it = functions.find(com.name);
 
             if (it == functions.end())
                 return fail("function with name '", com.name, "' not found");
 
-            auto args = (*this)(com.args);
+            auto args = (*this)(std::move(com.args));
 
             func& f = *(it->second);
 
@@ -327,17 +338,17 @@ struct evaluator
             return f(std::move(args));
         }
 
-        evaluated operator()(const literal_string& l) { return l.data; }
+        evaluated operator()(literal_string l) { return std::move(l.data); }
 
-        evaluated operator()(const literal_bool& l) { return l.value; }
+        evaluated operator()(literal_bool l) { return l.value; }
 
         // TODO
-        evaluated operator()(const literal_effect&) { return std::string{}; }
+        evaluated operator()(literal_effect) { return std::string{}; }
 
-        evaluated operator()(const literal_separator& l) { return l.data; }
+        evaluated operator()(literal_separator l) { return l.data; }
 
-        evaluated operator()(const literal_color& l) { return color{ l.data }; }
+        evaluated operator()(literal_color l) { return color{ l.data }; }
 
-        evaluated operator()(const literal_number& n) { return unsigned(n.value); }
+        evaluated operator()(literal_number n) { return unsigned(n.value); }
     };
 };

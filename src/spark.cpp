@@ -117,10 +117,11 @@
 #include "utils.hpp"
 #include "unicode.hpp"
 
-
+// cpp
 #include <iostream>
 #include <optional>
 #include <string>
+#include <utility>      // move
 
 // POSIX
 #include <unistd.h>     // posix, geteuid, gethostname, getcwd
@@ -234,7 +235,7 @@ struct if_then_else_t : builtin_func<typ::boolean, typ::any, typ::any>
 {
     evaluated perform(bool b, evaluated t, evaluated f) override
     {
-        return b ? t : f;
+        return b ? std::move(t) : std::move(f);
     }
 };
 
@@ -243,7 +244,7 @@ struct append_t : builtin_func<typ::string, typ::string>
 {
     evaluated perform(std::string a, std::string b) override
     {
-        return a += b;
+        return std::move(a) += std::move(b);
     }
 };
 
@@ -252,7 +253,7 @@ struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
 {
     evaluated perform(std::string a, std::string b, std::string c) override
     {
-        return (a += b) += c;
+        return (std::move(a) += std::move(b)) += std::move(c);
     }
 };
 
@@ -273,7 +274,6 @@ inline params_t parse_params(int argc, const char* const* argv)
     for (int i = 1; i < argc; i++)
     {
         auto arg = std::string_view{ argv[i] };
-
 
         if (arg == "--preview" || arg == "-p")
         {
@@ -354,7 +354,23 @@ int main(int argc, char** argv)
         "[ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') >> ]"
         "[ { #ffffff #05529E '' } (fmt ' ' (pwd_limited 35) ' ') >> ]"
         "[ { #ffffff #005BBB '' } '' :> ]"
-        "[ { #000000 #FFD500 '' } '' :> ]";
+        "[ { #000000 #FFD500 '' } '' :> ]"
+
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        // "[ { #ffffff #005BBB '' } '' :> ]"
+        // "[ { #000000 #FFD500 '' } '' :> ]"
+        ;
 
 
     const char* env_value = std::getenv("SPARK_THEME");
@@ -376,7 +392,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto node = parsed.get();
+    auto node = std::move(parsed.get());
     auto eval = evaluator{};
 
     eval.add_func("exit", std::make_unique<exit_t>(params.exit_code));
@@ -389,7 +405,7 @@ int main(int argc, char** argv)
     eval.add_func("append", std::make_unique<append_t>());
     eval.add_func("fmt", std::make_unique<fmt_t>());
 
-    maybe<style> result = eval(node);
+    maybe<style> result = eval(std::move(node));
 
     int r = result.visit([](const style& st)
     {

@@ -7,16 +7,28 @@
 #include <string_view>  // string_view
 #include <string>       // string
 #include <stdexcept>    // runtime_error
+#include <algorithm>    // remove_if
 
 
-// TODO: improve this awful complexity
 inline void remove_redundant(std::string& str)
 {
-    const auto redundant = std::string{ "\\]\\[" };
-    auto found = decltype(str.find(redundant)){};
+    for (unsigned i = 0; i + 3 < str.size(); ++i)
+    {
+        if (str[i]     == '\\'
+         && str[i + 1] == ']'
+         && str[i + 2] == '\\'
+         && str[i + 3] == '[')
+         {
+            str[i]     = '\0';
+            str[i + 1] = '\0';
+            str[i + 2] = '\0';
+            str[i + 3] = '\0';
+         }
+    }
 
-    while ((found = str.find(redundant)) != str.npos)
-        str.erase(found, redundant.size());
+    str.erase(std::remove_if(str.begin(), str.end(),
+                             [](char c){ return c == '\0'; }),
+              str.end());
 }
 
 

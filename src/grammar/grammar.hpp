@@ -5,6 +5,7 @@
 #include "parsing.hpp"
 
 #include <memory>       // shared_ptr, make_shared
+// #include <memory>       // unique_ptr, make_unique
 #include <vector>       // vector
 #include <variant>      // variant, visit
 #include <string>       // string
@@ -16,26 +17,6 @@
 
 #include <iomanip>      // setw, setfill, quoted
 #include <ios>          // hex
-
-
-
-namespace std
-{
-    template<typename T>
-    std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec)
-    {
-        out << "[";
-
-        const char* sep = "";
-        for (const auto& val : vec)
-        {
-            out << sep << val;
-            sep = ",";
-        }
-
-        return out << "]";
-    }
-}
 
 
 struct literal_string;
@@ -51,7 +32,8 @@ struct call;
 using node = std::variant<literal_string, literal_color, literal_effect,
                           literal_separator, literal_bool, literal_number,
                           composite_color, composite_segment, call>;
-using node_ptr = std::shared_ptr<node>;
+using node_ptr = std::unique_ptr<node>;
+// using node_ptr = std::shared_ptr<node>;
 
 
 // combined parsers
@@ -72,7 +54,8 @@ struct p_literal_number;
 template<typename T, typename... Args>
 node_ptr make_node(Args&&... args)
 {
-    return std::make_shared<node>(T(std::forward<Args>(args)...));
+    return std::make_unique<node>(T(std::forward<Args>(args)...));
+    // return std::make_shared<node>(T(std::forward<Args>(args)...));
 }
 
 
@@ -313,7 +296,7 @@ struct p_literal_effect : p_parser<node_ptr>
     maybe<node_ptr> operator()(input& in)
     {
         return parser(in)
-            .fmap([&](auto& str)
+            .fmap([&](auto str)
             {
                 return make_node<literal_effect>(std::move(str));
             });
@@ -342,7 +325,7 @@ struct p_literal_separator : p_parser<node_ptr>
     maybe<node_ptr> operator()(input& in)
     {
         return parser(in)
-            .fmap([&](sep val)
+            .fmap([](sep val)
             {
                 return make_node<literal_separator>(val);
             });
@@ -359,7 +342,7 @@ struct p_literal_bool : p_parser<node_ptr>
     maybe<node_ptr> operator()(input& in)
     {
         return parser(in)
-            .fmap([&](const std::string& str)
+            .fmap([](const std::string& str)
             {
                 return make_node<literal_bool>(str == "true");
             });
@@ -425,9 +408,10 @@ maybe<node_ptr> p_call::operator()(input& in)
                             p_char<')'>>{};
 
     return parser(in)
-        .fmap([&](auto pair)
+        .fmap([](auto pair)
         {
-            return make_node<call>(pair.first, std::move(pair.second));
+            return make_node<call>(std::move(pair.first),
+                                   std::move(pair.second));
         });
 }
 
@@ -439,7 +423,7 @@ maybe<node_ptr> p_composite_color::operator()(input& in)
                             p_char<'}'>>{};
 
     return parser(in)
-        .fmap([&](auto nodes)
+        .fmap([](auto nodes)
         {
             return make_node<composite_color>(std::move(nodes));
         });
@@ -452,7 +436,7 @@ maybe<node_ptr> p_composite_segment::operator()(input& in)
                             p_char<']'>>{};
 
     return parser(in)
-        .fmap([&](auto nodes)
+        .fmap([](auto nodes)
         {
             return make_node<composite_segment>(std::move(nodes));
         });

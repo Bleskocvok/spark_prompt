@@ -30,8 +30,11 @@ struct maybe;
 // cool type, bro
 template<typename F2, typename A, typename B>
 auto lift2(F2&& f2, A&& a, B&& b)
-    -> maybe<decltype(f2(std::forward<typename A::value_type>(a.get()),
-                         std::forward<typename B::value_type>(b.get())))>;
+    -> maybe<decltype(f2(maybe<typename A::value_type>::forward_val(
+                                std::forward<A>(a)),
+                         maybe<typename B::value_type>::forward_val(
+                                std::forward<B>(b))
+                     ))>;
 
 
 constexpr unsigned MAX_SIZE = -1;
@@ -183,7 +186,10 @@ struct maybe
     template<class F, class A>
     using result_t = std::remove_reference_t<std::remove_cv_t
                                             <std::invoke_result_t
-                                            <F, A&>>>;
+                                            <F, A>>>;
+    // using result_t = std::remove_reference_t<
+    //                     std::remove_cv_t<
+    //                         decltype(std::declval<F>(std::declval<A>))>>;
 
     std::variant<fail, T> value;
 
@@ -194,6 +200,10 @@ struct maybe
     const T& get() const { assert(good()); return std::get<T>(value); }
           T& get()       { assert(good()); return std::get<T>(value); }
 
+    static const T& forward_val(const maybe& m) { return m.get(); }
+    static       T& forward_val(maybe& m)       { return m.get(); }
+    static       T  forward_val(maybe&& m)      { return std::move(m.get()); }
+
     const fail& get_fail() const { assert(!good()); return std::get<fail>(value); }
           fail& get_fail()       { assert(!good()); return std::get<fail>(value); }
 
@@ -203,25 +213,25 @@ struct maybe
     operator bool() const { return good(); }
 
     template<class F>
-    auto and_then(F&& f)
+    auto and_then(F&& f) -> result_t<F, T>
     {
         if (T* ptr = std::get_if<T>(&value))
         {
-            return std::invoke(std::forward<F>(f), *ptr);
+            return std::invoke(std::forward<F>(f),
+                               std::move(*ptr));
         }
-        return result_t<F, T>( std::get<fail>(value) );
+        return std::get<fail>(value);
     }
 
     template<class F>
-    auto fmap(F&& f)
+    auto fmap(F&& f) -> maybe<result_t<F, T>>
     {
-        using B = result_t<F, T>;
-
         if (T* ptr = std::get_if<T>(&value))
         {
-            return maybe<B>( std::invoke(std::forward<F>(f), *ptr) );
+            return std::invoke(std::forward<F>(f),
+                               std::move(*ptr));
         }
-        return maybe<B>( std::get<fail>(value) );
+        return std::get<fail>(value);
     }
 
     template<typename FVal, typename FFail>
@@ -241,8 +251,11 @@ struct maybe
 // TODO: add generic lift(Fn fn, Args... args)
 template<typename F2, typename A, typename B>
 auto lift2(F2&& f2, A&& a, B&& b)
-    -> maybe<decltype(f2(std::forward<typename A::value_type>(a.get()),
-                         std::forward<typename B::value_type>(b.get())))>
+    -> maybe<decltype(f2(maybe<typename A::value_type>::forward_val(
+                                std::forward<A>(a)),
+                         maybe<typename B::value_type>::forward_val(
+                                std::forward<B>(b))
+                     ))>
 {
     if (!a)
         return a.get_fail();
@@ -251,8 +264,11 @@ auto lift2(F2&& f2, A&& a, B&& b)
         return b.get_fail();
 
     return std::invoke(std::forward<F2>(f2),
-                       std::forward<typename A::value_type>(a.get()),
-                       std::forward<typename B::value_type>(b.get()));
+                            maybe<typename A::value_type>::forward_val(
+                                std::forward<A>(a)),
+                            maybe<typename B::value_type>::forward_val(
+                                std::forward<B>(b))
+                       );
 }
 
 
@@ -429,7 +445,11 @@ struct str_builder
     std::string str;
 
     template<typename... Args>
-    str_builder(Args... chars) { ( str.push_back(chars), ... ); }
+    str_builder(Args... chars)
+    {
+        str.reserve(sizeof...(Args));
+        ( str.push_back(chars), ... );
+    }
 };
 
 
@@ -441,7 +461,7 @@ struct p_string : p_parser<std::string>
     maybe<std::string> operator()(input& in)
     {
         return parser(in)
-            .fmap([](str_builder& builder){ return std::move(builder.str); });
+            .fmap([](str_builder builder){ return std::move(builder.str); });
     }
 };
 
@@ -466,7 +486,7 @@ struct p_between : p_parser<typename T::value_type>
     {
         return begin(in)
             .and_then([&](const auto&) { return thing(in); })
-            .and_then([&](const auto& t) -> maybe<value_type>
+            .and_then([&](auto t) -> maybe<value_type>
             {
                 if (auto e = end(in); !e)
                     return e.get_fail();
@@ -494,6 +514,7 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
     maybe<value_type> operator()(input& in)
     {
         auto result = std::vector<chunk>{};
+        result.reserve(MinCount);
         auto prev_read = in.consumed();
 
         while (!in.end())
@@ -512,7 +533,7 @@ struct p_many : p_parser<std::vector<typename P::value_type>>
                 break;
             }
 
-            result.push_back(parsed.get());
+            result.push_back(std::move(parsed.get()));
 
             // thing consumed input
             if (read == prev_read)
@@ -563,14 +584,14 @@ private:
 
     template<int N = 0, typename ... Args>
     static void extract_tuple_rec(std::tuple<Args...>& out,
-                                  const std::tuple<maybe<Args>...>& tuple)
+                                  std::tuple<maybe<Args>...>& tuple)
     {
         if constexpr (N < sizeof...(Args))
         {
             if (!std::get<N>(tuple))
                 throw std::runtime_error("maybe holds a ‹fail› value");
 
-            std::get<N>(out) = std::get<N>(tuple).get();
+            std::get<N>(out) = std::move(std::get<N>(tuple).get());
             extract_tuple_rec<N + 1>(out, tuple);
         }
     }
@@ -695,7 +716,7 @@ struct p_prefixed : p_parser<typename T::value_type>
     auto operator()(input& in) -> maybe<typename T::value_type>
     {
         return parser(in)
-            .fmap([](const auto& pair){ return pair.second; });
+            .fmap([](auto pair){ return std::move(pair.second); });
     }
 };
 
@@ -713,7 +734,7 @@ struct p_suffixed : p_parser<typename T::value_type>
     auto operator()(input& in) -> maybe<typename T::value_type>
     {
         return parser(in)
-            .fmap([](const auto& pair){ return pair.first; });
+            .fmap([](auto pair){ return std::move(pair.first); });
     }
 };
 
@@ -755,7 +776,7 @@ struct p_try_seq : p_parser<Result>
             auto prev = in.consumed();
             auto res = std::get<N>(parsers)(in);
             if (res)
-                return res.get();
+                return std::move(res.get());
 
             // this parser consumed some input
             if (in.consumed() > prev)
@@ -870,7 +891,7 @@ struct p_many_sep_by : p_parser<std::vector<typename P::value_type>>
                 break;
             }
 
-            result.push_back(parsed.get());
+            result.push_back(std::move(parsed.get()));
 
             // thing consumed input
             if (read == prev_read)
