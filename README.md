@@ -26,5 +26,5 @@ Or alternatively:
 git clone https://github.com/Bleskocvok/spark_prompt
 cd spark_prompt
 make all
-sudo bash ./install 
+sudo bash ./install
 ```
