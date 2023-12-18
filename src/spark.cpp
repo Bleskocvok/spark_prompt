@@ -352,7 +352,7 @@ int main(int argc, char** argv)
             "(if (exit) ' ✓ ' ' × ') >> ]"
         "[ { #ffffff #005BBB '' } (fmt ' ' (user) ' ') :> ]"
         "[ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') >> ]"
-        "[ { #ffffff #05529E '' } (fmt ' ' (pwd_limited 35) ' ') >> ]"
+        "[ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') >> ]"
         "[ { #ffffff #005BBB '' } '' :> ]"
         "[ { #000000 #FFD500 '' } '' :> ]"
 
