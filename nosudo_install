@@ -3,7 +3,9 @@
 
 make || exit 1
 
-install -D -m 755 -T ./spark ~/.spark/spark
+mkdir -p ~/bin
+
+install -D -m 755 -T ./spark ~/bin/spark
 
 # remove old first
 sed -i '/# spark start/,/# spark end/d' ~/.bashrc
@@ -11,8 +13,6 @@ sed -i '/# spark start/,/# spark end/d' ~/.bashrc
 # install new entry in bashrc
 echo '
 # spark start
-
-alias spark=~/.spark/spark
 
 function _update_spark_prompt()
 {
