@@ -18,6 +18,8 @@ Syntax example:
 
 ## Installation
 
+For current user:
+
 ```sh
 git clone https://github.com/Bleskocvok/spark_prompt
 cd spark_prompt
@@ -25,7 +27,7 @@ make all
 bash ./nosudo_install
 ```
 
-Or alternatively:
+Or alternatively system-wide:
 
 ```sh
 git clone https://github.com/Bleskocvok/spark_prompt
