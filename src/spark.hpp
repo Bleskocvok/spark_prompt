@@ -59,11 +59,13 @@ R"END(
         [ { #000000 (if (exit) #565656 #330202)  '' } ' # ' | ]
 )END",
 
-        R"END([ { #ffffff (if (exit) #4F7D27 #750404) '' }
+R"END(
+        [ { #ffffff (if (exit) #4F7D27 #750404) '' }
         (if (exit) ' ✓ ' ' × ') | ]
         [ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') | ]
         [ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') | ]
-        [ { #000000 #FFD500 '' } ' # ' | ])END",
+        [ { #000000 #FFD500 '' } ' # ' | ]
+)END",
     };
 
     auto showcase = [](int exit_code, const auto& code)
