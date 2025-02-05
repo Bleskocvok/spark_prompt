@@ -130,6 +130,7 @@ struct params_t
 {
     bool preview = false;
     bool validate = false;
+    bool examples = false;
     int exit_code = 0;
     std::optional<std::string> theme;
 };
@@ -150,6 +151,10 @@ inline params_t parse_params(int argc, const char* const* argv)
         else if (arg == "--validate" || arg == "-v")
         {
             params.validate = true;
+        }
+        else if (arg == "--examples" || arg == "-e")
+        {
+            params.examples = true;
         }
         else if (arg == "--theme" || arg == "-t")
         {
@@ -225,6 +230,13 @@ int main(int argc, char** argv)
     const char* env_value = std::getenv("SPARK_THEME");
     auto code = env_value == nullptr ? default_code
                                      : std::string{ env_value };
+
+    if (params.examples)
+    {
+        USE_INVIS = false;
+        show_examples();
+        return 0;
+    }
 
     if (params.theme)
         code = *params.theme;
