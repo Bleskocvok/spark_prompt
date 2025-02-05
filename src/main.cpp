@@ -229,24 +229,7 @@ int main(int argc, char** argv)
     if (params.theme)
         code = *params.theme;
 
-    auto in = input(code);
-
-    auto parser = p_sequence{};
-
-    maybe<std::vector<node_ptr>> parsed = parser(in);
-
-    if (!parsed)
-    {
-        output_error("PARSE ERROR: ", parsed.get_fail());
-        return 1;
-    }
-
-    auto node = std::move(parsed.get());
-    auto eval = evaluator{};
-
-    add_builtin(eval, params.exit_code);
-
-    maybe<style> result = eval(std::move(node));
+    maybe<style> result = parse_evaluate_style(params.exit_code, code);
 
     return result.visit([](const style& st)
     {
