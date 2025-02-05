@@ -314,8 +314,14 @@ struct p_literal_separator : p_parser<node_ptr>
             //   TODO: solve same prefix problem
               p_enum<sep, sep::rpowerline_space,'<', '<'>,
 
-              p_enum<sep, sep::empty,           '/', '/'>,   // slope
-              p_enum<sep, sep::empty,           '\\', '\\'>,
+              p_enum<sep, sep::rslope,           '/'>,   // slope
+              p_enum<sep, sep::slope,            '\\'>,
+
+              p_enum<sep, sep::rslope_space,     '/', '/'>,   // slope
+              p_enum<sep, sep::slope_space,      '\\', '\\'>,
+
+              p_enum<sep, sep::empty,           '|'>,        // empty
+              p_enum<sep, sep::empty,           '|', '|'>,
 
               p_enum<sep, sep::space,           '~'>,        // space
             //   p_enum<sep, sep::fill, '-', '-'>,   // fill

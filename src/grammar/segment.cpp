@@ -25,8 +25,12 @@ size_t sep_len(sep s)
         case sep::powerline:            // [[fallthrough]]
         case sep::rpowerline:           // [[fallthrough]]
         case sep::powerline_pseudo:     // [[fallthrough]]
+        case sep::slope:                // [[fallthrough]]
+        case sep::rslope:               // [[fallthrough]]
         case sep::rpowerline_pseudo:    return 1;
 
+        case sep::slope_space:          // [[fallthrough]]
+        case sep::rslope_space:         // [[fallthrough]]
         case sep::powerline_space:      // [[fallthrough]]
         case sep::rpowerline_space:     return 2;
     }
@@ -41,6 +45,9 @@ void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
     static const auto pseudo = "▶"s;
     static const auto rarrow = "\uE0B2"s;
     static const auto rpseudo = "◀"s;
+
+    static const auto slope = "\ue0b8"s;
+    static const auto rslope = "\ue0ba"s;
 
     switch (s)
     {
@@ -58,6 +65,13 @@ void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
                 << bg_color_str(next_bg)
                 << fg_color_str(bg)
                 << arrow;
+            break;
+
+        case sep::slope:
+            out << fg_color_str(bit3::reset)  // needed to cancel font effect
+                << bg_color_str(next_bg)
+                << fg_color_str(bg)
+                << slope;
             break;
 
         case sep::powerline_space:
@@ -89,6 +103,13 @@ void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
                 << bg_color_str(bg)
                 << fg_color_str(next_bg)
                 << rarrow;
+            break;
+
+        case sep::rslope:
+            out << fg_color_str(bit3::reset)  // needed to cancel font effect
+                << bg_color_str(bg)
+                << fg_color_str(next_bg)
+                << rslope;
             break;
 
         case sep::rpowerline_space:

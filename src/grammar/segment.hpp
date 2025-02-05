@@ -20,6 +20,12 @@ enum class sep : unsigned
     rpowerline,
     rpowerline_space,
     rpowerline_pseudo,
+
+    slope,
+    rslope,
+
+    slope_space,
+    rslope_space,
 };
 
 
