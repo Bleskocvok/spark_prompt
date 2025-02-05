@@ -51,7 +51,7 @@ enum class typ : unsigned
 };
 
 
-auto typ_to_str(typ t) -> const char*
+inline auto typ_to_str(typ t) -> const char*
 {
     switch (t)
     {
@@ -69,7 +69,7 @@ auto typ_to_str(typ t) -> const char*
 }
 
 
-typ typ_of(const evaluated& val)
+inline typ typ_of(const evaluated& val)
 {
     return static_cast<typ>(val.index());
 }

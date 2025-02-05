@@ -1,3 +1,5 @@
+#pragma once
+
 #include "grammar/evaluate.hpp"
 
 #include <string>       // string

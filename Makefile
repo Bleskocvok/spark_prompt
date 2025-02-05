@@ -9,10 +9,12 @@ CPPFLAGS += \
 TARGET = spark
 
 SRC = \
+	src/main.cpp \
 	src/spark.cpp \
 	src/grammar/style.cpp \
 	src/grammar/segment.cpp \
-	src/grammar/color.cpp
+	src/grammar/color.cpp \
+	src/grammar/grammar.cpp
 
 OBJ = $(patsubst src/%.cpp,.obj/%.o,$(SRC))
 DEPEND = $(OBJ:.o=.d)
