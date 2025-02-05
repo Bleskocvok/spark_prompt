@@ -144,8 +144,9 @@ struct func
             if (expected[i] != typ::any
                     && args[i].index() != unsigned(expected[i]))
             {
-                if (args[i].index() == 0)
-                    std::cerr << std::get<fail>(args[i]) << std::endl;
+                // TODO: Why was this here? Investigate.
+                // if (args[i].index() == 0)
+                //     std::cerr << std::get<fail>(args[i]) << std::endl;
 
                 return std::pair{ i, fail("type mismatch: expected ‹",
                                           typ_to_str(expected[i]),

@@ -242,6 +242,15 @@ struct maybe
 
         return std::invoke(std::forward<FFail>(f_fail), get_fail());
     }
+
+    template<typename FVal, typename FFail>
+    auto visit(FVal&& f_val, FFail&& f_fail) const
+    {
+        if (good())
+            return std::invoke(std::forward<FVal>(f_val), get());
+
+        return std::invoke(std::forward<FFail>(f_fail), get_fail());
+    }
 };
 
 
