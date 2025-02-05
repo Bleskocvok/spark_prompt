@@ -9,7 +9,6 @@ CPPFLAGS += \
 TARGET = spark
 
 SRC = \
-	src/main.cpp \
 	src/spark.cpp \
 	src/grammar/style.cpp \
 	src/grammar/segment.cpp \
@@ -17,12 +16,22 @@ SRC = \
 	src/grammar/grammar.cpp
 
 OBJ = $(patsubst src/%.cpp,.obj/%.o,$(SRC))
-DEPEND = $(OBJ:.o=.d)
+MAIN_OBJ = .obj/main.o
+MAIN_SRC = src/main.cpp
 
+DEPEND = $(OBJ:.o=.d) obj/main.d
+
+TEST = test/test_spark
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
+test: test/test_spark
+	test/test_spark
+
+$(TEST): test/test_spark.cpp $(OBJ)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
+
+$(TARGET): $(OBJ) $(MAIN_OBJ)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 .obj/:
@@ -44,6 +53,6 @@ clean:
 	$(RM) -r .obj/
 
 distclean: clean
-	$(RM) $(TARGET)
+	$(RM) $(TARGET) $(TEST)
 
-.PHONY: all clean distclean prepare
+.PHONY: all clean distclean prepare test
