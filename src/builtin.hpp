@@ -24,6 +24,8 @@ struct username_t : builtin_func<>
         struct passwd* user_info = ::getpwuid(::geteuid());
         return std::string{ user_info->pw_name };
     }
+
+    const char* name() const override { return "user"; }
 };
 
 struct hostname_t : builtin_func<>
@@ -34,6 +36,8 @@ struct hostname_t : builtin_func<>
         ::gethostname(buffer, sizeof(buffer));
         return std::string{ buffer };
     }
+
+    const char* name() const override { return "host"; }
 };
 
 inline bool replace_home(std::string& str)
@@ -64,6 +68,8 @@ struct pwd_t : builtin_func<>
 
         return result;
     }
+
+    const char* name() const override { return "pwd"; }
 };
 
 struct pwd_limited_t : builtin_func<typ::integer>
@@ -88,6 +94,8 @@ struct pwd_limited_t : builtin_func<typ::integer>
         }
         return result;
     }
+
+    const char* name() const override { return "pwd_limited"; }
 };
 
 struct rgb_t : builtin_func<typ::integer, typ::integer, typ::integer>
@@ -102,6 +110,8 @@ struct rgb_t : builtin_func<typ::integer, typ::integer, typ::integer>
                     std::uint8_t(g),
                     std::uint8_t(b) };
     }
+
+    const char* name() const override { return "rgb"; }
 };
 
 struct exit_t : builtin_func<>
@@ -116,6 +126,8 @@ struct exit_t : builtin_func<>
         // TODO: return the actual integer value
         return bool(value == 0);
     }
+
+    const char* name() const override { return "exit"; }
 };
 
 struct if_then_else_t : builtin_func<typ::boolean, typ::any, typ::any>
@@ -124,6 +136,8 @@ struct if_then_else_t : builtin_func<typ::boolean, typ::any, typ::any>
     {
         return b ? std::move(t) : std::move(f);
     }
+
+    const char* name() const override { return "if"; }
 };
 
 struct append_t : builtin_func<typ::string, typ::string>
@@ -132,6 +146,8 @@ struct append_t : builtin_func<typ::string, typ::string>
     {
         return std::move(a) += std::move(b);
     }
+
+    const char* name() const override { return "append"; }
 };
 
 struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
@@ -140,6 +156,8 @@ struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
     {
         return (std::move(a) += std::move(b)) += std::move(c);
     }
+
+    const char* name() const override { return "fmt"; }
 };
 
 

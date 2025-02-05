@@ -113,6 +113,8 @@ struct func
         return fail("operator() not implemented");
     }
 
+    virtual const char* name() const = 0;
+
     template<typ Idx>
     auto get(const eval_vec& vec, int i) -> get_type_t<Idx>
     {
@@ -139,7 +141,7 @@ struct func
         for (std::size_t i = 0; i < expected.size(); ++i)
         {
             if (i >= args.size())
-                return std::pair{ i, fail("expected more arguments") };
+                return std::pair{ i, fail(name(), ": expected more arguments") };
 
             if (expected[i] != typ::any
                     && args[i].index() != unsigned(expected[i]))
@@ -148,7 +150,7 @@ struct func
                 // if (args[i].index() == 0)
                 //     std::cerr << std::get<fail>(args[i]) << std::endl;
 
-                return std::pair{ i, fail("type mismatch: expected ‹",
+                return std::pair{ i, fail(name(), ": type mismatch: expected ‹",
                                           typ_to_str(expected[i]),
                                           "›, got ‹",
                                           typ_to_str(typ(args[i].index())),
@@ -157,7 +159,8 @@ struct func
         }
 
         if (args.size() > expected.size())
-            return std::pair{ -1, fail("too many arguments") };
+            return std::pair{ -1, fail(name(), ": too many arguments ", args.size(),
+                              ", expected ", expected.size()) };
 
         return std::nullopt;
     }
@@ -213,6 +216,8 @@ struct mk_theme : builtin_func<typ::color, typ::color, typ::any>
     {
         return theme{ fg, bg };
     }
+
+    const char* name() const override { return "mk_theme"; }
 };
 
 
@@ -222,6 +227,8 @@ struct mk_segment : builtin_func<typ::theme, typ::string, typ::sep>
     {
         return segment{ std::move(str), std::move(th), s };
     }
+
+    const char* name() const override { return "mk_segment"; }
 };
 
 
