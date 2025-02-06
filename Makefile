@@ -2,9 +2,9 @@
 CXXFLAGS ?= -std=c++20 -pedantic -Wall -Wextra -O2
 
 CPPFLAGS += \
-	-I src/         \
-	-I src/grammar  \
-	-I src/parsing
+	-Isrc/         \
+	-Isrc/grammar  \
+	-Isrc/parsing
 
 TARGET = spark
 
@@ -23,9 +23,9 @@ DEPEND = $(OBJ:.o=.d) obj/main.d
 
 TEST = test/test_spark
 
-all: $(TARGET)
+all: .obj/ $(TARGET)
 
-test: test/test_spark
+test: .obj/ test/test_spark
 	test/test_spark
 
 $(TEST): test/test_spark.cpp $(OBJ)
@@ -39,7 +39,7 @@ $(TARGET): $(OBJ) $(MAIN_OBJ)
 	mkdir -p .obj/grammar
 	mkdir -p .obj/parsing
 
-.obj/%.o: src/%.cpp .obj/
+.obj/%.o: src/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 .obj/%.o: CXXFLAGS += -MMD -MP
