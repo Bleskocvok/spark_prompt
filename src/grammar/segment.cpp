@@ -87,6 +87,18 @@ void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
             break;
         }
 
+        case sep::slope_space:
+        {
+            // TODO
+            break;
+        }
+
+        case sep::rslope_space:
+        {
+            // TODO
+            break;
+        }
+
         case sep::powerline_pseudo:
             out << bg_color_str(next_bg)
                 << fg_color_str(bg)
