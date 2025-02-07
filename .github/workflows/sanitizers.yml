@@ -3,7 +3,7 @@ run-name: Running sanitizers for push by ${{ github.actor }}
 on: [push]
 
 jobs:
-  run-build:
+  run-sanitizers:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
