@@ -236,7 +236,7 @@ struct evaluator
 {
     using functions_t = std::map<std::string, std::unique_ptr<func>>;
 
-    functions_t funcs{};
+    functions_t funcs;
 
     evaluator() = default;
 
