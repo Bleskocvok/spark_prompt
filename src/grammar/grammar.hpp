@@ -109,7 +109,7 @@ struct literal_effect
 
     // TODO
 
-    literal_effect(std::string) {}
+    literal_effect(const std::string&) {}
     literal_effect(effect data) : data(data) {}
 
     friend std::ostream& operator<<(std::ostream& out, const literal_effect& a)

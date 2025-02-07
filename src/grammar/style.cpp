@@ -48,7 +48,8 @@ void style::render(std::ostream& out) const
 
         w += segments[i].width();
 
-        if (segments[i].h_space)
+        // if (segments[i].h_space)
+        if (segments[i].end == sep::space)
         {
             size_t rest = total_width(segments.begin() + i + 1, segments.end());
             spaces(out, twidth - (rest + w));

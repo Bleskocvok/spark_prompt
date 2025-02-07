@@ -118,7 +118,7 @@ struct exit_t : builtin_func<>
 {
     int value = 0;
 
-    exit_t(int value) : builtin_func(), value(value)
+    exit_t(int value) : value(value)
     { }
 
     evaluated perform() override
@@ -144,7 +144,7 @@ struct append_t : builtin_func<typ::string, typ::string>
 {
     evaluated perform(std::string a, std::string b) override
     {
-        return std::move(a) += std::move(b);
+        return std::move(a) += b;
     }
 
     const char* name() const override { return "append"; }
@@ -154,7 +154,7 @@ struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
 {
     evaluated perform(std::string a, std::string b, std::string c) override
     {
-        return (std::move(a) += std::move(b)) += std::move(c);
+        return (std::move(a) += b) += c;
     }
 
     const char* name() const override { return "fmt"; }

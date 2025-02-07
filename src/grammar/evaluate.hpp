@@ -108,7 +108,7 @@ struct func
     explicit func(std::vector<typ> expected) : expected(std::move(expected))
     { }
 
-    virtual evaluated operator()(eval_vec)
+    virtual evaluated operator()(eval_vec) // NOLINT
     {
         return fail("operator() not implemented");
     }
@@ -225,7 +225,7 @@ struct mk_segment : builtin_func<typ::theme, typ::string, typ::sep>
 {
     evaluated perform(theme th, std::string str, sep s) override
     {
-        return segment{ std::move(str), std::move(th), s };
+        return segment{ std::move(str), th, s };
     }
 
     const char* name() const override { return "mk_segment"; }

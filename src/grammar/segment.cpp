@@ -20,7 +20,7 @@ size_t sep_len(sep s)
         case sep::newline:              // [[fallthrough]]
         case sep::empty:                return 0;
 
-        case sep::space:                return 1;
+        case sep::space:                // [[fallthrough]]
 
         case sep::powerline:            // [[fallthrough]]
         case sep::rpowerline:           // [[fallthrough]]
@@ -88,11 +88,6 @@ void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
         }
 
         case sep::slope_space:
-        {
-            // TODO
-            break;
-        }
-
         case sep::rslope_space:
         {
             // TODO
