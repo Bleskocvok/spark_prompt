@@ -10,9 +10,14 @@ jobs:
 
       - name: Undefined
         run: make clean; SANITIZE=undefined CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+
       - name: Address
         run: make clean; SANITIZE=address   CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
-      - name: Memory
-        run: make clean; SANITIZE=memory    CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
-      - name: Dataflow
-        run: make clean; SANITIZE=dataflow  CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+
+      # # This one reported false positives.
+      # - name: Memory
+      #   run: make clean; SANITIZE=memory    CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+
+      # # This one throws linker error.
+      # - name: Dataflow
+      #   run: make clean; SANITIZE=dataflow  CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e

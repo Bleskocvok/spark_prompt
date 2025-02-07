@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# set -ex
+set -x
+
+echo; make clean; SANITIZE=undefined CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+echo; make clean; SANITIZE=address   CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+# echo; make clean; SANITIZE=memory    CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+# echo; make clean; SANITIZE=dataflow  CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+
+CXXFLAGS="-std=c++20 -pedantic -Wall -Wextra -O2 -g" make clean all test/test_spark
+valgrind ./spark -e
+valgrind test/test_spark
+
+make clang-tidy
