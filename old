@@ -29,9 +29,9 @@ function retval_color()
     ret="$1"
     if [ "$ret" -eq 0 ];
     then
-        echo -e "\033[01;32m"
+        echo -e "\033[48;2;0;91;187m"
     else
-        echo -e "\033[01;31m"
+        echo -e "\033[41m"
     fi
 }
 
@@ -40,32 +40,17 @@ function retval()
     ret="$1"
     if [ "$ret" -eq 0 ];
     then
-        echo "✓"
+        echo " ✓"
     else
-        echo "✖"
+        echo " ⨯"
     fi
 }
 
 function pp_host()
 {
     name="$1"
-    case "$name" in
-        *big-pc)
-            echo -e "\033[02;37m"
-        ;;
-        *big-pc-vindous)
-            echo -e "\033[02;37m"
-        ;;
-        *aisa|*nymfe*)
-            echo -e "\033[1;96m"
-        ;;
-        *thunderframe)
-            echo -e "\033[1;33m"
-        ;;
-        *)
-            echo -e "\033[00m"
-        ;;
-    esac
+    # echo -e "\033[1;43m"
+    printf '\033[48;2;0;91;187m\033[38;2;255;255;255m'
 }
 
 function export_retval()
@@ -73,10 +58,13 @@ function export_retval()
     ret="$?"
     export RET_COLOR=$(retval_color $ret)
     export RET_SYMBOL=$(retval $ret)
+    export USR_COLOR=$(printf '\033[48;2;165;165;165m\033[38;2;0;0;0m')
+    # export HOST_COLOR=$(printf '\033[48;2;0;91;187m')
+    export PWD_COLOR=$(printf '\033[48;2;165;165;165m\033[38;2;0;0;0m')
 }
 
 export PROMPT_COMMAND='export_retval'
-export PS1="\[\$RET_COLOR\]\$RET_SYMBOL "'\[\033[01;32m\]\u\[\033[02;37m\]\[$(pp_host \h)\]@\h\[\033[00m\]:\[\033[01;34m\]$(shorten \w)\[\033[00m\]\$ '
+export PS1="\[\$RET_COLOR\]\$RET_SYMBOL "'\[$USR_COLOR\] \u \[\033[02;37m\]\[$(pp_host \h)\] \h \[\033[00m\]\[$PWD_COLOR\] $(shorten \w) \[\033[00m\] '
 
 # ---------------------------------------------------------------------- #
 
