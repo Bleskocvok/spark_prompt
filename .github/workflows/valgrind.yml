@@ -1,6 +1,6 @@
-# name: Valgrind
-# run-name: Running valgrind for push by ${{ github.actor }}
-# on: [push]
+name: Valgrind
+run-name: Running valgrind for push by ${{ github.actor }}
+on:
 
 # jobs:
 #   run-valgrind:
