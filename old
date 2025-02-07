@@ -49,8 +49,7 @@ function retval()
 function pp_host()
 {
     name="$1"
-    # echo -e "\033[1;43m"
-    printf '\033[48;2;0;91;187m\033[38;2;255;255;255m'
+    printf '\033[48;2;165;165;165m\033[38;2;1;1;1m'
 }
 
 function export_retval()
@@ -58,13 +57,12 @@ function export_retval()
     ret="$?"
     export RET_COLOR=$(retval_color $ret)
     export RET_SYMBOL=$(retval $ret)
-    export USR_COLOR=$(printf '\033[48;2;165;165;165m\033[38;2;0;0;0m')
     # export HOST_COLOR=$(printf '\033[48;2;0;91;187m')
-    export PWD_COLOR=$(printf '\033[48;2;165;165;165m\033[38;2;0;0;0m')
+    export PWD_COLOR=$(printf '\033[48;2;0;91;187m\033[38;2;255;255;255m')
 }
 
 export PROMPT_COMMAND='export_retval'
-export PS1="\[\$RET_COLOR\]\$RET_SYMBOL "'\[$USR_COLOR\] \u \[\033[02;37m\]\[$(pp_host \h)\] \h \[\033[00m\]\[$PWD_COLOR\] $(shorten \w) \[\033[00m\] '
+export PS1="\[\$RET_COLOR\]\$RET_SYMBOL "'\[$(pp_host \h)\] \h \[\033[00m\]\[$PWD_COLOR\] $(shorten \w) \[\033[00m\] '
 
 # ---------------------------------------------------------------------- #
 
