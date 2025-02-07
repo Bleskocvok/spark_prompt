@@ -1,5 +1,9 @@
-
 CXXFLAGS ?= -std=c++20 -pedantic -Wall -Wextra -O2
+
+ifdef SANITIZE
+	CXXFLAGS += -g -fsanitize=$(SANITIZE) -fsanitize-undefined-trap-on-error
+	LDFLAGS += -fsanitize=$(SANITIZE)
+endif
 
 CPPFLAGS += \
 	-Isrc/         \
@@ -31,7 +35,10 @@ test: .obj/ test/test_spark
 	test/test_spark
 
 clang-tidy:
-	$(CLANG_TIDY) $(SRC) $(SRC_MAIN) --config-file=.clang-tidy -header-filter=.* -- $(CXXFLAGS)
+	$(CLANG_TIDY) $(SRC) $(SRC_MAIN) \
+	-warnings-as-errors='*' \
+	--config-file=.clang-tidy \
+	-header-filter=.* -- $(CXXFLAGS)
 
 $(TEST): test/test_spark.cpp $(OBJ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
