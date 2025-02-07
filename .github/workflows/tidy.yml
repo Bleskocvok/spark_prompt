@@ -8,5 +8,5 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-      - name: Build
+      - name: Clang-Tidy
         run: make clang-tidy
