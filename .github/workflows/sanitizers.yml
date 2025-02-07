@@ -1,0 +1,18 @@
+name: Sanitizers
+run-name: Running sanitizers for push by ${{ github.actor }}
+on: [push]
+
+jobs:
+  run-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Undefined
+        run: make clean; SANITIZE=undefined CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+      - name: Address
+        run: make clean; SANITIZE=address   CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+      - name: Memory
+        run: make clean; SANITIZE=memory    CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+      - name: Dataflow
+        run: make clean; SANITIZE=dataflow  CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e

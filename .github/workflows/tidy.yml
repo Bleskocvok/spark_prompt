@@ -1,0 +1,12 @@
+name: Clang-Tidy
+run-name: Running clang-tidy for push by ${{ github.actor }}
+on: [push]
+
+jobs:
+  run-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Build
+        run: make clang-tidy
