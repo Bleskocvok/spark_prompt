@@ -86,12 +86,11 @@ int main()
     check_pass("[ { (rgb 255 255 255) #ff11ff '' }  (user) >> ]");
     check_pass("(if (exit) [ { #fF11Ff #ff11ff '' }  (user) >> ] [ { #fF11Ff #ff11ff '' }  (user) >> ] )");
 
-    // TODO:
-    // check_pass(R"END([ { #ffffff (if (exit) #005BBB #750404) '' }
-    //     (if (exit) ' ✓ ' ' × ') >> ]
-    //     [ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') | ]
-    //     [ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') >> ]
-    //     [ { #000000 #FFD500 '' } '' :> ])END");
+    check_pass(R"END([ { #ffffff (if (exit) #005BBB #750404) '' }
+        (if (exit) ' ✓ ' ' × ') >> ]
+        [ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') | ]
+        [ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') >> ]
+        [ { #000000 #FFD500 '' } '' :> ])END");
 
     check_fail("[ { (rgb 255 -1 255) #ff11ff '' }  (user) >> ]");
     check_fail("[ { (rgb 255 -255 255) #ff11ff '' }  (user) >> ]");
