@@ -6,6 +6,8 @@ CPPFLAGS += \
 	-Isrc/grammar  \
 	-Isrc/parsing
 
+CLANG_TIDY ?= clang-tidy
+
 TARGET = spark
 
 SRC = \
@@ -27,6 +29,9 @@ all: .obj/ $(TARGET)
 
 test: .obj/ test/test_spark
 	test/test_spark
+
+clang-tidy:
+	$(CLANG_TIDY) $(SRC) $(SRC_MAIN) --config-file=.clang-tidy -header-filter=.* -- $(CXXFLAGS)
 
 $(TEST): test/test_spark.cpp $(OBJ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
@@ -55,4 +60,4 @@ clean:
 distclean: clean
 	$(RM) $(TARGET) $(TEST)
 
-.PHONY: all clean distclean prepare test
+.PHONY: all clean distclean prepare test clang-tidy
