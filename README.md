@@ -28,7 +28,7 @@ For current user:
 git clone https://github.com/Bleskocvok/spark_prompt
 cd spark_prompt
 make all
-bash ./nosudo_install
+bash ./install
 ```
 
 Or alternatively system-wide:
@@ -37,5 +37,5 @@ Or alternatively system-wide:
 git clone https://github.com/Bleskocvok/spark_prompt
 cd spark_prompt
 make all
-sudo bash ./install
+sudo bash ./system_install
 ```

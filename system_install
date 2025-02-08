@@ -3,9 +3,8 @@
 
 make || exit 1
 
-mkdir -p ~/bin
+sudo install -D -m 755 ./spark /usr/local/bin/spark
 
-install -D -m 755 -T ./spark ~/bin/spark
 
 # remove old first
 sed -i '/# spark start/,/# spark end/d' ~/.bashrc
