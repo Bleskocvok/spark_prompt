@@ -24,10 +24,10 @@ size_t sep_len(sep s)
     switch (s)
     {
         case sep::newline:              // [[fallthrough]]
+        case sep::fill:                 // [[fallthrough]]
         case sep::empty:                return 0;
 
         case sep::space:                // [[fallthrough]]
-
         case sep::powerline:            // [[fallthrough]]
         case sep::rpowerline:           // [[fallthrough]]
         case sep::powerline_pseudo:     // [[fallthrough]]
@@ -84,6 +84,7 @@ void render_sep(std::ostream& out, const segment& seg, color next_bg)
 
     switch (s)
     {
+        case sep::fill:
         case sep::empty:    out << fg_color_str(bit3::reset);         break;
         case sep::space:    out << fg_color_str(bit3::reset) << " ";  break;
         case sep::newline:  out << bg_color_str(bit3::reset) << "\n"; break;

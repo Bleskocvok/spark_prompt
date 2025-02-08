@@ -311,7 +311,7 @@ struct p_literal_separator : p_parser<node_ptr>
 
               p_enum<sep, sep::powerline_space, '>', '>'>,   // thick powerline
 
-            //   TODO: solve same prefix problem
+              // TODO: solve same prefix problem
               p_enum<sep, sep::rpowerline_space,'<', '<'>,
 
               p_enum<sep, sep::rslope,           '/'>,   // slope
@@ -321,11 +321,13 @@ struct p_literal_separator : p_parser<node_ptr>
               p_enum<sep, sep::slope_space,      '\\', '\\'>,
 
               p_enum<sep, sep::empty,           '|'>,        // empty
-              p_enum<sep, sep::empty,           '|', '|'>,
+              p_enum<sep, sep::space,           '|', '|'>,
 
-              p_enum<sep, sep::space,           '~'>,        // space
-            //   p_enum<sep, sep::fill, '-', '-'>,   // fill
+              // p_prefixed<p_char<'|'>, typename T>
+
+              p_enum<sep, sep::fill,           '~'>,        // space
               p_enum<sep, sep::newline,         'V'>         // newline
+              // p_enum<sep, sep::fill, '-', '-'>,   // fill
               > parser;
 
     maybe<node_ptr> operator()(input& in)

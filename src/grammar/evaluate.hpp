@@ -96,7 +96,7 @@ using get_type_t = typename get_type<Type>::type;
 
 using eval_vec = std::vector<evaluated>;
 
-#include <iostream>
+
 struct func
 {
     virtual ~func() = default;

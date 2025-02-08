@@ -12,10 +12,11 @@ enum class sep : unsigned
 {
     empty,
     space,
+    fill,
+    newline,
     powerline,
     powerline_space,
     powerline_pseudo,
-    newline,
 
     rpowerline,
     rpowerline_space,
