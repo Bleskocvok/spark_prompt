@@ -16,7 +16,7 @@ TARGET = spark
 
 SRC = \
 	src/spark.cpp \
-	src/grammar/style.cpp \
+	src/bash_renderer.cpp \
 	src/grammar/segment.cpp \
 	src/grammar/color.cpp \
 	src/grammar/grammar.cpp

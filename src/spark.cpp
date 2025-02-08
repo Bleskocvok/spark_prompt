@@ -1,3 +1,4 @@
+#include "bash_renderer.hpp"
 #include "grammar/parsing.hpp"
 #include "utils.hpp"
 #include "spark.hpp"
@@ -5,11 +6,13 @@
 // cpp
 #include <iostream>
 
-
 void output_style(const style& stl)
 {
     auto out = std::ostringstream{};
-    stl.render(out);
+
+    bash_renderer renderer;
+
+    renderer.render(stl, out);
 
     auto str = out.str();
     remove_redundant(str);
