@@ -114,5 +114,5 @@ int main()
     std::cerr << "Failed: " << int(fail) << "\n";
     std::cerr << "Skipped: " << skipped << "\n";
 
-    return 0;
+    return fail ? 1 : 0;
 }
