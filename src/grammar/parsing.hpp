@@ -8,6 +8,7 @@
 #include <functional>   // invoke, forward, ref
 #include <type_traits>  // remove_cv, remove_reference, invoke_result,
                         // is_invocable_v, is_constructible, decay_t, is_enum_v
+                        // conditional
 #include <string_view>  // string_view
 #include <set>          // set
 #include <sstream>      // stringstream
@@ -769,6 +770,8 @@ struct p_str_pred : p_parser<std::string>
 template<typename Result, typename ... Parsers>
 struct p_try_seq : p_parser<Result>
 {
+    using value_type = Result;
+
     std::tuple<Parsers...> parsers;
 
     p_try_seq() : parsers() {}
@@ -937,14 +940,24 @@ struct p_enum : p_parser<T>
 {
     static_assert(std::is_enum_v<T>, "T needs to be an enum type");
 
-    p_string<Chars...> parser;
+    struct empty {};
+    using Parser = typename std::conditional<sizeof...(Chars) == 0, empty, p_string<Chars...>>::type;
+
+    Parser parser;
 
     maybe<T> operator()(input& in)
     {
-        return parser(in)
-            .fmap([](const auto&)
-            {
-                return Value;
-            });
+        if constexpr (sizeof...(Chars) == 0)
+        {
+            return Value;
+        }
+        else
+        {
+            return parser(in)
+                .fmap([](const auto&)
+                {
+                    return Value;
+                });
+        }
     }
 };

@@ -44,8 +44,9 @@ void bash_renderer::render(const style& stl, std::ostream& out) const
 
         w += stl.segments[i].width();
 
+        // TODO: Account for width continuously and reset on newline.
         // if (stl.segments[i].h_space)
-        if (stl.segments[i].end == sep::space)
+        if (stl.segments[i].end == sep::fill)
         {
             size_t rest = total_width(stl.segments.begin() + i + 1, stl.segments.end());
             spaces(out, twidth - (rest + w));

@@ -306,27 +306,23 @@ struct p_literal_effect : p_parser<node_ptr>
 struct p_literal_separator : p_parser<node_ptr>
 {
     p_try_seq<sep,
-              p_enum<sep, sep::powerline,       ':', '>'>,   // powerline
-              p_enum<sep, sep::rpowerline,      '<', ':'>,
+              p_prefixed<p_char<'>'>, p_try_seq<sep, p_enum<sep, sep::powerline_space, '>'>,
+                                                     p_enum<sep, sep::powerline>>>,
 
-              p_enum<sep, sep::powerline_space, '>', '>'>,   // thick powerline
+              p_prefixed<p_char<'/'>, p_try_seq<sep, p_enum<sep, sep::rslope_space, '/'>,
+                                                     p_enum<sep, sep::rslope>>>,
 
-              // TODO: solve same prefix problem
-              p_enum<sep, sep::rpowerline_space,'<', '<'>,
+              p_prefixed<p_char<'\\'>,p_try_seq<sep, p_enum<sep, sep::slope_space, '\\'>,
+                                                     p_enum<sep, sep::newline, 'n'>,
+                                                     p_enum<sep, sep::slope>>>,
 
-              p_enum<sep, sep::rslope,           '/'>,   // slope
-              p_enum<sep, sep::slope,            '\\'>,
+              p_prefixed<p_char<'|'>, p_try_seq<sep, p_enum<sep, sep::space, '|'>,
+                                                     p_enum<sep, sep::empty>>>,
 
-              p_enum<sep, sep::rslope_space,     '/', '/'>,   // slope
-              p_enum<sep, sep::slope_space,      '\\', '\\'>,
+              p_prefixed<p_char<'<'>, p_try_seq<sep, p_enum<sep, sep::rpowerline_space, '<'>,
+                                                     p_enum<sep, sep::rpowerline>>>,
 
-              p_enum<sep, sep::empty,           '|'>,        // empty
-              p_enum<sep, sep::space,           '|', '|'>,
-
-              // p_prefixed<p_char<'|'>, typename T>
-
-              p_enum<sep, sep::fill,           '~'>,        // space
-              p_enum<sep, sep::newline,         'V'>         // newline
+              p_enum<sep, sep::fill,           '~'>
               // p_enum<sep, sep::fill, '-', '-'>,   // fill
               > parser;
 
