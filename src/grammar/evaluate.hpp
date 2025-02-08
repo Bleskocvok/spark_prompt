@@ -170,7 +170,7 @@ struct func
 template<typ... Types>
 struct builtin_func : func
 {
-    builtin_func() : func(std::vector<typ>{ Types... })
+    builtin_func() : func(std::vector<typ>{ Types... }) // NOLINT
     { }
 
     evaluated operator()(eval_vec args) override

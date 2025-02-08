@@ -52,6 +52,6 @@ struct segment
 };
 
 
-void render_sep(std::ostream& out, segment seg, color next_bg);
+void render_sep(std::ostream& out, const segment& seg, color next_bg);
 
 size_t sep_len(sep s);

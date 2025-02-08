@@ -1,6 +1,6 @@
 #pragma once
 
-#include "style.hpp"
+#include "grammar/style.hpp"
 
 #include <iostream>
 

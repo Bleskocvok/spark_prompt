@@ -69,7 +69,7 @@ static void arrow_thing(std::ostream& out, color bg, color next_bg,
 }
 
 
-void render_sep(std::ostream& out, segment seg, color next_bg)
+void render_sep(std::ostream& out, const segment& seg, color next_bg)
 {
     static const auto arrow = "\uE0B0"s;
     static const auto pseudo = "▶"s;
