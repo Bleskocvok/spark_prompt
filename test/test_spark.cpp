@@ -75,7 +75,7 @@ int main()
 
     check_pass(R"END([ { #eeeeEe #ff11ff '' } (user) >> ] 
           [ { #eeeeEe #bb00bb '' } (host) >> ]
-          [ { #eeeeEe #ff11ff '' } (pwd_limited 35)  :> ]
+          [ { #eeeeEe #ff11ff '' } (pwd_limited 35)  > ]
           )END");
 
     check_pass("[ { #eeeeEe     #ff11ff '' } 'hello' >> ]");
@@ -90,7 +90,21 @@ int main()
         (if (exit) ' ✓ ' ' × ') >> ]
         [ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') | ]
         [ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') >> ]
-        [ { #000000 #FFD500 '' } '' :> ])END");
+        [ { #000000 #FFD500 '' } '' > ])END");
+
+    // New separators.
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' >> ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' << ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' < ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' > ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' | ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' || ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' ~ ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' \\n ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' \\ ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' \\\\ ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' /\\ ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' // ]");
 
     check_fail("[ { (rgb 255 -1 255) #ff11ff '' }  (user) >> ]");
     check_fail("[ { (rgb 255 -255 255) #ff11ff '' }  (user) >> ]");
