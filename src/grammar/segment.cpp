@@ -13,6 +13,12 @@ using namespace std::literals;
 using namespace std::string_literals;
 
 
+size_t segment::width() const
+{
+    return unicode_size(str) + sep_len(end);
+}
+
+
 size_t sep_len(sep s)
 {
     switch (s)
@@ -39,7 +45,31 @@ size_t sep_len(sep s)
 }
 
 
-void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
+static void space_thing(std::ostream& out, color bg, color next_bg,
+                        const std::string& symbol, bool reversed = false)
+{
+    // TODO: add option to change color of “thick”
+    color thick = rgb{ 0, 0, 0 };
+    out << bg_color_str(reversed ? bg    : thick)
+        << fg_color_str(reversed ? thick : bg)
+        << symbol
+        << fg_color_str(reversed ? next_bg : thick)
+        << bg_color_str(reversed ? thick   : next_bg)
+        << symbol;
+}
+
+
+static void arrow_thing(std::ostream& out, color bg, color next_bg,
+                        const std::string& symbol, bool reversed = false)
+{
+    out << fg_color_str(bit3::reset)  // needed to cancel font effect
+        << (reversed ? bg_color_str(bg)      : bg_color_str(next_bg))
+        << (reversed ? fg_color_str(next_bg) : fg_color_str(bg))
+        << symbol;
+}
+
+
+void render_sep(std::ostream& out, segment seg, color next_bg)
 {
     static const auto arrow = "\uE0B0"s;
     static const auto pseudo = "▶"s;
@@ -49,99 +79,25 @@ void render_sep(std::ostream& out, sep s, color /*fg*/, color bg, color next_bg)
     static const auto slope = "\ue0b8"s;
     static const auto rslope = "\ue0ba"s;
 
+    auto s = seg.end;
+    auto bg = seg.th.bg;
+
     switch (s)
     {
-        case sep::empty:
-            out << fg_color_str(bit3::reset);
-            break;
+        case sep::empty:    out << fg_color_str(bit3::reset);         break;
+        case sep::space:    out << fg_color_str(bit3::reset) << " ";  break;
+        case sep::newline:  out << bg_color_str(bit3::reset) << "\n"; break;
 
-        case sep::space:
-            out << fg_color_str(bit3::reset)
-                << " ";
-            break;
+        case sep::powerline_pseudo:     arrow_thing(out, bg, next_bg, pseudo); break;
+        case sep::powerline:            arrow_thing(out, bg, next_bg, arrow); break;
+        case sep::slope:                arrow_thing(out, bg, next_bg, slope); break;
+        case sep::rpowerline_pseudo:    arrow_thing(out, bg, next_bg, rpseudo, true); break;
+        case sep::rpowerline:           arrow_thing(out, bg, next_bg, rarrow, true); break;
+        case sep::rslope:               arrow_thing(out, bg, next_bg, rslope, true); break;
 
-        case sep::powerline:
-            out << fg_color_str(bit3::reset)  // needed to cancel font effect
-                << bg_color_str(next_bg)
-                << fg_color_str(bg)
-                << arrow;
-            break;
-
-        case sep::slope:
-            out << fg_color_str(bit3::reset)  // needed to cancel font effect
-                << bg_color_str(next_bg)
-                << fg_color_str(bg)
-                << slope;
-            break;
-
-        case sep::powerline_space:
-        {
-            // TODO: add option to change color of “thick”
-            color thick = rgb{ 0, 0, 0 };
-            out << bg_color_str(thick)
-                << fg_color_str(bg)
-                << arrow
-                << fg_color_str(thick)
-                << bg_color_str(next_bg)
-                << arrow;
-            break;
-        }
-
-        case sep::slope_space:
-        case sep::rslope_space:
-        {
-            // TODO
-            break;
-        }
-
-        case sep::powerline_pseudo:
-            out << bg_color_str(next_bg)
-                << fg_color_str(bg)
-                << pseudo;
-            break;
-
-        case sep::newline:
-            out << bg_color_str(bit3::reset)
-                << "\n";
-            break;
-
-        case sep::rpowerline:
-            out << fg_color_str(bit3::reset)  // needed to cancel font effect
-                << bg_color_str(bg)
-                << fg_color_str(next_bg)
-                << rarrow;
-            break;
-
-        case sep::rslope:
-            out << fg_color_str(bit3::reset)  // needed to cancel font effect
-                << bg_color_str(bg)
-                << fg_color_str(next_bg)
-                << rslope;
-            break;
-
-        case sep::rpowerline_space:
-        {
-            // TODO: add option to change color of “thick”
-            color thick = rgb{ 0, 0, 0 };
-            out << bg_color_str(bg)
-                << fg_color_str(thick)
-                << rarrow
-                << fg_color_str(next_bg)
-                << bg_color_str(thick)
-                << rarrow;
-            break;
-        }
-
-        case sep::rpowerline_pseudo:
-            out << bg_color_str(bg)
-                << fg_color_str(next_bg)
-                << rpseudo;
-            break;
+        case sep::slope_space:          space_thing(out, bg, next_bg, slope); break;
+        case sep::powerline_space:      space_thing(out, bg, next_bg, arrow); break;
+        case sep::rslope_space:         space_thing(out, bg, next_bg, rslope, true); break;
+        case sep::rpowerline_space:     space_thing(out, bg, next_bg, rarrow, true); break;
     }
-}
-
-
-size_t segment::width() const
-{
-    return unicode_size(str) + sep_len(end);
 }

@@ -29,11 +29,6 @@ enum class sep : unsigned
 };
 
 
-void render_sep(std::ostream& out, sep s, color fg, color bg, color next_bg);
-
-size_t sep_len(sep s);
-
-
 struct theme
 {
     color fg = bit3::white,
@@ -55,3 +50,8 @@ struct segment
 
     size_t width() const;
 };
+
+
+void render_sep(std::ostream& out, segment seg, color next_bg);
+
+size_t sep_len(sep s);
