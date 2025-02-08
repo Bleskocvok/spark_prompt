@@ -26,3 +26,5 @@ void output_error(const Prefix& prefix, const Err& err)
 }
 
 void show_examples();
+
+void functions_help();

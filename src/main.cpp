@@ -131,6 +131,7 @@ struct params_t
     bool preview = false;
     bool validate = false;
     bool examples = false;
+    bool help = false;
     int exit_code = 0;
     std::optional<std::string> theme;
 };
@@ -147,6 +148,10 @@ inline params_t parse_params(int argc, const char* const* argv)
         if (arg == "--preview" || arg == "-p")
         {
             params.preview = true;
+        }
+        else if (arg == "--help" || arg == "-h")
+        {
+            params.help = true;
         }
         else if (arg == "--validate" || arg == "-v")
         {
@@ -201,7 +206,7 @@ int main(int argc, char** argv)
     //     "[ { #eeeeEe #bb00bb '' } (host) >> ]"
     //     "[ { #eeeeEe #ff11ff '' } (pwd_limited 35)  :> ]"s;
 
-    static const auto default_code =
+    static const char default_code[] =
         "[ { #ffffff (if (exit) #4F7D27 #750404) '' }"
             "(if (exit) ' ✓ ' ' × ') >> ]"
         "[ { #ffffff #005BBB '' } (fmt ' ' (user) ' ') :> ]"
@@ -230,6 +235,12 @@ int main(int argc, char** argv)
     const char* env_value = std::getenv("SPARK_THEME");
     auto code = env_value == nullptr ? default_code
                                      : std::string{ env_value };
+
+    if (params.help)
+    {
+        functions_help();
+        return 0;
+    }
 
     if (params.examples)
     {

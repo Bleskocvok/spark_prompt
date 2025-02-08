@@ -164,6 +164,31 @@ struct func
 
         return std::nullopt;
     }
+
+    std::string arguments_description() const
+    {
+        auto result = std::string{};
+        bool fst = true;
+        for (const auto& t : expected)
+        {
+            if (!fst)
+                result += " ";
+            fst = false;
+
+            result += typ_to_str(t);
+        }
+        return result;
+    }
+
+private:
+    template<typename... Args>
+    std::string desc_rec(typ t, Args... args) const
+    {
+        if constexpr (sizeof...(Args) > 0)
+            return typ_to_str(t) + desc_rec(args...);
+        else
+            return typ_to_str(t);
+    }
 };
 
 
@@ -198,8 +223,7 @@ struct builtin_func : func
     }
 
     template<int N = 0, typename Tuple, typ Typ, typ... Nxt>
-    void fill_tuple(Tuple& out,
-                    eval_vec& args)
+    void fill_tuple(Tuple& out, eval_vec& args)
     {
         assert(N < args.size());
         std::get<N>(out) = std::move(func::get<Typ>(args, N));

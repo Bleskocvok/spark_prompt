@@ -38,7 +38,7 @@ void bash_renderer::render(const style& stl, std::ostream& out) const
         out << stl.segments[i].str;
 
         color next = i != stl.segments.size() - 1 ? stl.segments[i + 1].th.bg
-                                              : bit3::reset;
+                                              : bit3::black;
 
         render_sep(out, stl.segments[i], next);
 

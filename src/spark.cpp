@@ -45,6 +45,25 @@ maybe<style> parse_evaluate_style(int exit_code, const std::string& code)
     return result;
 }
 
+void functions_help()
+{
+    auto eval = evaluator{};
+
+    add_builtin(eval, 0);
+
+    auto& out = std::cout;
+
+    out << "FUNCTIONS\n";
+
+    for (const auto& f : eval.funcs)
+    {
+        auto desc = f.second->arguments_description();
+        out << "    (" << f.second->name() << (desc.empty() ? "" : " ")
+            << desc
+            << ")\n";
+    }
+}
+
 void show_examples()
 {
     auto examples = std::vector<std::string>
@@ -83,6 +102,14 @@ R"END(
 [ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') | ]
 [ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') | ]
 [ { #000000 #FFD500 '' } ' # ' > ]
+)END",
+
+R"END(
+[ { #ffffff (if (exit) #4F7D27 #750404) '' } (if (exit) ' ✓ ' ' × ') | ]
+[ { #000000 #aaaaaa '' } (fmt ' ' (host) ' ') > ]
+[ { #aaaaaa #000000 '' } '' ~ ]
+[ { #000000 #aaaaaa '' } (fmt ' ' (pwd_limited 35) ' ') < ]
+[ { #000000 #083B6D '' } ' # ' / ]
 )END",
     };
 
