@@ -99,12 +99,14 @@ int main()
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' > ]");
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' | ]");
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' || ]");
-    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' ~ ]");
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' \\n ]");
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' \\ ]");
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' \\\\ ]");
-    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' /\\ ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' / ]");
     check_pass("[ { #eeeeEe #ff11ff '' } 'hello' // ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' ~ ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' ~ ] [ { #eeeeEe #ff11ff '' } 'world' | ]");
+    check_pass("[ { #eeeeEe #ff11ff '' } 'hello' ~ ] [ { #eeeeEe #ff11ff '' } 'world' ~ ]");
 
     check_fail("[ { (rgb 255 -1 255) #ff11ff '' }  (user) >> ]");
     check_fail("[ { (rgb 255 -255 255) #ff11ff '' }  (user) >> ]");

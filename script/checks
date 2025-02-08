@@ -3,13 +3,16 @@
 # set -ex
 set -x
 
-echo; make clean; SANITIZE=undefined CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
-echo; make clean; SANITIZE=address   CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
-# echo; make clean; SANITIZE=memory    CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
-# echo; make clean; SANITIZE=dataflow  CXX=clang++-18 make all test/test_spark -j && test/test_spark && ./spark -e
+[ -z "$CXX" ] && CXX=clang++
+[ -z "$CLANG_TIDY" ] && CLANG_TIDY=clang-tidy
 
-CXXFLAGS="-std=c++20 -pedantic -Wall -Wextra -O2 -g" make clean all test/test_spark
+echo; make clean; SANITIZE=undefined CXX=$CXX make all test/test_spark -j && test/test_spark && ./spark -e
+echo; make clean; SANITIZE=address   CXX=$CXX make all test/test_spark -j && test/test_spark && ./spark -e
+# echo; make clean; SANITIZE=memory    CXX=$CXX make all test/test_spark -j && test/test_spark && ./spark -e
+# echo; make clean; SANITIZE=dataflow  CXX=$CXX make all test/test_spark -j && test/test_spark && ./spark -e
+
+make clean; CXXFLAGS="-std=c++20 -pedantic -Wall -Wextra -O2 -g" make all test/test_spark -j
 valgrind ./spark -e
 valgrind test/test_spark
 
-make clang-tidy
+CLANG_TIDY=$CLANG_TIDY make clang-tidy
