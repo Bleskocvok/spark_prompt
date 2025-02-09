@@ -33,9 +33,9 @@ DEPEND = $(OBJ:.o=.d) obj/main.d
 
 TEST = test/test_spark
 
-all: .obj/ $(TARGET)
+all: $(TARGET)
 
-test: .obj/ test/test_spark
+test: test/test_spark
 	test/test_spark
 
 clang-tidy:
@@ -50,14 +50,15 @@ $(TEST): test/test_spark.cpp $(OBJ)
 $(TARGET): $(OBJ) $(MAIN_OBJ)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
-.obj/:
+.obj/created:
 	mkdir -p .obj/
 	mkdir -p .obj/grammar
 	mkdir -p .obj/parsing
 	mkdir -p .obj/eval
 	mkdir -p .obj/style
+	touch .obj/created
 
-.obj/%.o: src/%.cpp
+.obj/%.o: src/%.cpp .obj/created
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 .obj/%.o: CXXFLAGS += -MMD -MP
