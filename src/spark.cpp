@@ -1,7 +1,14 @@
+#include "spark.hpp"
+
 #include "bash_renderer.hpp"
 #include "grammar/parsing.hpp"
+#include "eval/builtin.hpp"
 #include "utils.hpp"
-#include "spark.hpp"
+#include "grammar/parsing.hpp"
+#include "grammar/grammar.hpp"
+#include "eval/evaluate.hpp"
+#include "style/style.hpp"
+#include "utils.hpp"
 
 // cpp
 #include <iostream>
@@ -110,6 +117,15 @@ R"END(
 [ { #aaaaaa #000000 '' } '' ~ ]
 [ { #000000 #aaaaaa '' } (fmt ' ' (pwd_limited 35) ' ') < ]
 [ { #000000 #083B6D '' } ' # ' / ]
+)END",
+
+R"END(
+[ { #ffffff (if (exit) #4F7D27 #750404) '' } (if (exit) ' ✓ ' ' × ') | ]
+[ { #000000 #aaaaaa '' } (fmt ' ' (host) ' ') > ]
+[ { #aaaaaa #000000 '' } '' ~ ]
+[ { #000000 #aaaaaa '' } (fmt ' ' (pwd_limited 35) ' ') < ]
+[ { #000000 #083B6D '' } ' # ' \n ]
+[ { #000000 #083B6D '' } ' > ' > ]
 )END",
     };
 

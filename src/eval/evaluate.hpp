@@ -6,8 +6,7 @@
 
 #include <utility>      // move, pair, forward
 #include <variant>      // visit, variant_alternative_t, variant_size_v
-#include <stdexcept>    // runtime_error
-#include <cstdint>      // size_t
+#include <cstddef>      // size_t
 #include <optional>     // optional, nullopt
 #include <map>          // map
 #include <memory>       // unique_ptr

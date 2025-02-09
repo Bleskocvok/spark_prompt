@@ -112,18 +112,12 @@
 
 
 #include "grammar/parsing.hpp"
-#include "grammar/grammar.hpp"
-#include "eval/evaluate.hpp"
-#include "utils.hpp"
 #include "unicode.hpp"
-#include "builtin.hpp"
 #include "spark.hpp"
 
 // cpp
-#include <iostream>
 #include <optional>
 #include <string>
-#include <utility>      // move
 
 
 struct params_t
@@ -209,11 +203,11 @@ int main(int argc, char** argv)
     static const char default_code[] =
         "[ { #ffffff (if (exit) #4F7D27 #750404) '' }"
             "(if (exit) ' ✓ ' ' × ') >> ]"
-        "[ { #ffffff #005BBB '' } (fmt ' ' (user) ' ') :> ]"
+        "[ { #ffffff #005BBB '' } (fmt ' ' (user) ' ') > ]"
         "[ { #000000 #FFD500 '' } (fmt ' ' (host) ' ') >> ]"
         "[ { #ffffff #083B6D '' } (fmt ' ' (pwd_limited 35) ' ') >> ]"
-        "[ { #ffffff #005BBB '' } '' :> ]"
-        "[ { #000000 #FFD500 '' } '' :> ]"
+        "[ { #ffffff #005BBB '' } '' > ]"
+        "[ { #000000 #FFD500 '' } '' > ]"
 
         // "[ { #ffffff #005BBB '' } '' :> ]"
         // "[ { #000000 #FFD500 '' } '' :> ]"

@@ -10,7 +10,6 @@
 #include <variant>      // variant, visit
 #include <string>       // string
 #include <array>        // array
-#include <cstdint>      // uint8_t
 #include <cassert>      // assert
 #include <utility>      // move
 #include <ostream>      // ostream

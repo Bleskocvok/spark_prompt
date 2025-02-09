@@ -3,7 +3,7 @@
 // c
 #include <clocale>      // set_locale, mbstate_t
 #include <cwchar>       // mbrlen
-#include <cstdint>      // size_t
+#include <cstddef>      // size_t
 
 // cpp
 #include <string_view>  // string_view

@@ -161,7 +161,6 @@ struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
 };
 
 
-
 inline void add_builtin(evaluator& eval, int exit_code)
 {
     eval.add_func("exit", std::make_unique<exit_t>(exit_code));
