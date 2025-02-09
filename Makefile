@@ -5,12 +5,14 @@ ifdef SANITIZE
 	LDFLAGS += -fsanitize=$(SANITIZE)
 endif
 
-CPPFLAGS += \
+INCLUDES = \
 	-Isrc/         \
 	-Isrc/grammar  \
 	-Isrc/style    \
 	-Isrc/eval     \
 	-Isrc/parsing
+
+CPPFLAGS += $(INCLUDES)
 
 CLANG_TIDY ?= clang-tidy
 
@@ -40,7 +42,7 @@ clang-tidy:
 	$(CLANG_TIDY) $(SRC) $(SRC_MAIN) \
 	-warnings-as-errors='*' \
 	--config-file=.clang-tidy \
-	-header-filter=.* -- $(CXXFLAGS)
+	-header-filter=.* -- $(CXXFLAGS) $(INCLUDES)
 
 $(TEST): test/test_spark.cpp $(OBJ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
