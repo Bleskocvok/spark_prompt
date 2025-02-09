@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "style.hpp"
+#include "style/style.hpp"
 #include "parsing.hpp"
 
 #include <memory>       // shared_ptr, make_shared

@@ -8,6 +8,8 @@ endif
 CPPFLAGS += \
 	-Isrc/         \
 	-Isrc/grammar  \
+	-Isrc/style    \
+	-Isrc/eval     \
 	-Isrc/parsing
 
 CLANG_TIDY ?= clang-tidy
@@ -17,8 +19,8 @@ TARGET = spark
 SRC = \
 	src/spark.cpp \
 	src/bash_renderer.cpp \
-	src/grammar/segment.cpp \
-	src/grammar/color.cpp \
+	src/style/segment.cpp \
+	src/style/color.cpp \
 	src/grammar/grammar.cpp
 
 OBJ = $(patsubst src/%.cpp,.obj/%.o,$(SRC))
@@ -50,6 +52,8 @@ $(TARGET): $(OBJ) $(MAIN_OBJ)
 	mkdir -p .obj/
 	mkdir -p .obj/grammar
 	mkdir -p .obj/parsing
+	mkdir -p .obj/eval
+	mkdir -p .obj/style
 
 .obj/%.o: src/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

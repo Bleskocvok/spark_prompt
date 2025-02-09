@@ -2,7 +2,8 @@
 
 #include "grammar/parsing.hpp"
 #include "grammar/grammar.hpp"
-#include "grammar/evaluate.hpp"
+#include "eval/evaluate.hpp"
+#include "style/style.hpp"
 #include "utils.hpp"
 #include "unicode.hpp"
 #include "builtin.hpp"

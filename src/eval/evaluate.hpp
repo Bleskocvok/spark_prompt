@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "grammar.hpp"
-#include "style.hpp"
+#include "grammar/grammar.hpp"
+#include "style/style.hpp"
 
 #include <utility>      // move, pair, forward
 #include <variant>      // visit, variant_alternative_t, variant_size_v
