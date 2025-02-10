@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+function shorten()
+{
+    dir="$1"
+    hom=$(echo "$HOME" | sed -e 's$/$\\/$g')
+    dir=$(echo "$dir" | sed "s/$hom/~/")
+    if [ ${#dir} -gt 40 ]; then
+        echo …`echo ${dir:$((${#dir} - 40)):${#dir}}`
+    else
+        echo $dir
+    fi
+}
+
+function retval()
+{
+    ret="$1"
+    if [ "$ret" -eq 0 ];
+    then
+        export PS1="\[\033[48;2;45;94;1m\033[38;2;191;191;191m\] ✓ \[\033[0m\033[48;2;77;153;10m\033[38;2;223;223;223m\] \h \[\033[0m\033[48;2;45;94;1m\033[38;2;223;223;223m\] \w \[\033[0m\]\[\033[0m\] "
+    else
+        export PS1="\[\033[48;2;51;2;2m\033[38;2;191;191;191m\] × \[\033[0m\033[48;2;73;3;3m\033[38;2;223;223;223m\] \h \[\033[0m\033[48;2;51;2;2m\033[38;2;223;223;223m\] \w \[\033[0m\]\[\033[0m\] "
+    fi
+}
+
+function export_retval()
+{
+    ret="$?"
+    retval $ret
+}
+
+export PROMPT_COMMAND='export_retval'
