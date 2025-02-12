@@ -13,7 +13,7 @@
 inline auto INVBEG = std::string{ "\\[" };
 inline auto INVEND = std::string{ "\\]" };
 
-inline auto COLBEGIN = std::string{ "\033[" };
+inline auto COLBEGIN = std::string{ "\\033[" };
 inline auto COLEND   = std::string{ "m" };
 
 inline bool USE_INVIS = true;

@@ -145,6 +145,12 @@ struct fail
     {
         return out << f.msg;
     }
+
+    friend fail& operator+=(fail& a, const fail& b)
+    {
+        a.msg += ": " + b.msg;
+        return a;
+    }
 };
 
 

@@ -6,11 +6,7 @@ ifdef SANITIZE
 endif
 
 INCLUDES = \
-	-Isrc/         \
-	-Isrc/grammar  \
-	-Isrc/style    \
-	-Isrc/eval     \
-	-Isrc/parsing
+	-Isrc/
 
 CPPFLAGS += $(INCLUDES)
 

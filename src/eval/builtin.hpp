@@ -106,9 +106,9 @@ struct rgb_t : builtin_func<typ::integer, typ::integer, typ::integer>
         if (g > 255) return fail("g > 255");
         if (b > 255) return fail("b > 255");
 
-        return rgb{ std::uint8_t(r),
-                    std::uint8_t(g),
-                    std::uint8_t(b) };
+        return color{ rgb{ std::uint8_t(r),
+                           std::uint8_t(g),
+                           std::uint8_t(b) } };
     }
 
     const char* name() const override { return "rgb"; }
@@ -161,6 +161,18 @@ struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
 };
 
 
+struct optional_t : builtin_func<typ::string, typ::optional_boolean>
+{
+    evaluated perform(std::string, std::optional<bool>) override
+    {
+        return true;
+    }
+    const char* name() const override { return "optional"; }
+};
+
+
+
+
 inline void add_builtin(evaluator& eval, int exit_code)
 {
     eval.add_func("exit", std::make_unique<exit_t>(exit_code));
@@ -172,4 +184,7 @@ inline void add_builtin(evaluator& eval, int exit_code)
     eval.add_func("rgb", std::make_unique<rgb_t>());
     eval.add_func("append", std::make_unique<append_t>());
     eval.add_func("fmt", std::make_unique<fmt_t>());
+
+    // TODO: Remove.
+    eval.add_func("optional", std::make_unique<optional_t>());
 }

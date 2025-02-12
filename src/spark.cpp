@@ -98,10 +98,15 @@ R"END(
 )END",
 
 R"END(
-[ { #bfbfbf (if (exit) #565656 #750404) '' } (if (exit) ' ✓ ' ' × ') | ]
-[ { #bfbfbf (if (exit) #2b2b2b #330202) '' } (fmt ' ' (host) ' ') | ]
-[ { #dfdfdf (if (exit) #1e1e1e #490303) '' } (fmt ' ' (pwd_limited 35) ' ') || ]
-[ { #000000 (if (exit) #565656 #330202) '' } ' # ' | ]
+[ { #bfbfbf (if (exit) #565656 #330202) '' } (if (exit) ' ✓ ' ' × ') | ]
+[ { #bfbfbf (if (exit) #2b2b2b #490303) '' } (fmt ' ' (host) ' ') | ]
+[ { #dfdfdf (if (exit) #1e1e1e #330202) '' } (fmt ' ' (pwd_limited 35) ' ') || ]
+)END",
+
+R"END(
+[ { #bfbfbf (if (exit) #2d5e01 #330202) '' } (if (exit) ' ✓ ' ' × ') | ]
+[ { #dfdfdf (if (exit) #4d990a #490303) '' } (fmt ' ' (host) ' ') | ]
+[ { #dfdfdf (if (exit) #2d5e01 #330202) '' } (fmt ' ' (pwd_limited 35) ' ') || ]
 )END",
 
 R"END(
@@ -127,6 +132,16 @@ R"END(
 [ { #000000 #083B6D '' } ' # ' \n ]
 [ { #000000 #083B6D '' } ' > ' > ]
 )END",
+
+// R"END(
+// [ { #ffffff (if (exit) #4F7D27 #750404) '' } (if (exit) ' ✓ ' ' × ') | ]
+// [ { #000000 #aaaaaa '' } (fmt ' ' (host) ' ') > ]
+// [ { #aaaaaa #000000 '' } '' ~ ]
+// [ { #000000 #aaaaaa '' } (fmt ' ' (pwd_limited 35) ' ') < ]
+// [ { #000000 #083B6D '' } ' # ' \n ]
+// [ { #000000 #083B6D '' } (optional 'ahoj' true) > ]
+// [ { #000000 #083B6D '' } (optional 'ahoj') > ]
+// )END",
     };
 
     auto showcase = [](int exit_code, const auto& code)
