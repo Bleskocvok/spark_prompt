@@ -1,0 +1,21 @@
+name: Valgrind
+run-name: Running valgrind for push by ${{ github.actor }}
+on: [push]
+
+jobs:
+  run-valgrind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install deps
+        run: sudo apt install valgrind
+
+      - name: Build
+        run: make clean; CXXFLAGS="-std=c++20 -pedantic -Wall -Wextra -O2 -g" make all test/test_spark -j
+
+      - name: Valgrind spark
+        run: valgrind ./spark -e
+
+      - name: Valgrind test
+        run: valgrind test/test_spark
