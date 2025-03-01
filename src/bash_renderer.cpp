@@ -1,6 +1,7 @@
 #include "bash_renderer.hpp"
 
 // cpp
+#include <cstring>
 #include <ostream>      // ostream
 
 // linux
@@ -26,6 +27,7 @@ static void spaces(std::ostream& out, int i)
 void bash_renderer::render(const style& stl, std::ostream& out) const
 {
     struct winsize win;
+    std::memset(&win, 0, sizeof win);
     ::ioctl(2, TIOCGWINSZ, &win);
     const int twidth = win.ws_col - 2;
 
