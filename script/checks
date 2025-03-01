@@ -11,7 +11,7 @@ echo; make clean; SANITIZE=address   CXX=$CXX make all test/test_spark -j && tes
 # echo; make clean; SANITIZE=dataflow  CXX=$CXX make all test/test_spark -j && test/test_spark && ./spark -e
 
 make clean; CXXFLAGS="-std=c++20 -pedantic -Wall -Wextra -O2 -g" make all test/test_spark -j
-valgrind ./spark -e
-valgrind test/test_spark
+valgrind --error-exitcode=200 ./spark -e
+valgrind --error-exitcode=200 test/test_spark
 
 CLANG_TIDY=$CLANG_TIDY make clang-tidy
