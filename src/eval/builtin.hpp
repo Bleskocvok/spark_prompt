@@ -161,14 +161,14 @@ struct fmt_t : builtin_func<typ::string, typ::string, typ::string>
 };
 
 
-struct optional_t : builtin_func<typ::string, typ::optional_boolean>
-{
-    evaluated perform(std::string, std::optional<bool>) override
-    {
-        return true;
-    }
-    const char* name() const override { return "optional"; }
-};
+// struct optional_t : builtin_func<typ::string, typ::optional_boolean>
+// {
+//     evaluated perform(std::string, std::optional<bool>) override
+//     {
+//         return true;
+//     }
+//     const char* name() const override { return "optional"; }
+// };
 
 
 
@@ -186,5 +186,5 @@ inline void add_builtin(evaluator& eval, int exit_code)
     eval.add_func("fmt", std::make_unique<fmt_t>());
 
     // TODO: Remove.
-    eval.add_func("optional", std::make_unique<optional_t>());
+    // eval.add_func("optional", std::make_unique<optional_t>());
 }

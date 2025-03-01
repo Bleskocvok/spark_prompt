@@ -59,15 +59,15 @@ struct func
                 return std::pair{ i, fail(name(), ": expected more arguments") };
 
             if (expected[i] != typ::any
-                    && expected[i] != typ::optional_any
+                    // && expected[i] != typ::optional_any
                     && args[i].index() != unsigned(expected[i]))
             {
                 // TODO: Why was this here? Investigate.
                 // if (args[i].index() == 0)
                 //     std::cerr << std::get<fail>(args[i]) << std::endl;
 
-                if (args[i].index() != unsigned(from_optional(expected[i])))
-                    continue;
+                // if (args[i].index() != unsigned(from_optional(expected[i])))
+                //     continue;
 
                 auto f = fail(name(), ": type mismatch: expected ‹",
                                           typ_to_str(expected[i]),
