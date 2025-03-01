@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# set -ex
-set -x
+set -ex
 
 [ -z "$CXX" ] && CXX=clang++
 [ -z "$CLANG_TIDY" ] && CLANG_TIDY=clang-tidy
