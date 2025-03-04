@@ -40,3 +40,12 @@ cd spark_prompt
 make all
 sudo bash ./system_install
 ```
+
+## TODO
+
+- Print grammar with -h
+- Basic builtin functions
+- Advanced builting functiona (git branch)
+- Custom finctiondefinition
+- Bake option
+- More output types (powershell, zsh, ghci, …)
