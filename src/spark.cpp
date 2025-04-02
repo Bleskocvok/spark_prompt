@@ -3,6 +3,7 @@
 #include "bash_renderer.hpp"
 #include "grammar/parsing.hpp"
 #include "eval/builtin.hpp"
+#include "style/color.hpp"
 #include "utils.hpp"
 #include "grammar/parsing.hpp"
 #include "grammar/grammar.hpp"
@@ -12,6 +13,9 @@
 
 // cpp
 #include <iostream>
+#include <string>
+#include <vector>
+#include <utility>
 
 void output_style(const style& stl)
 {

@@ -1,7 +1,10 @@
 #include "color.hpp"
 
 // cpp
+#include <cstdint>
+#include <optional>
 #include <string>       // string, to_string
+#include <string_view>
 #include <variant>      // variant
 
 
@@ -35,14 +38,17 @@ struct converter
     }
 };
 
+namespace {
 
 std::string effect_string(effect ef)
 {
     if (ef == effect::none)
         return "";
-    
+
     return std::to_string(uint8_t(ef)) + ";";
 }
+
+} // namespace
 
 
 std::string fg_color_str(color col, effect ef)

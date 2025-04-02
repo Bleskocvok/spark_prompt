@@ -1,4 +1,7 @@
 #include "bash_renderer.hpp"
+#include "style/style.hpp"
+#include "style/color.hpp"
+#include "style/segment.hpp"
 
 // cpp
 #include <cstring>
@@ -7,8 +10,10 @@
 // linux
 #include <sys/ioctl.h>  // ioctl
 
+namespace {
+
 template<typename It>
-static size_t total_width(It begin, It end)
+size_t total_width(It begin, It end)
 {
     size_t res = 0;
     for (; begin != end; ++begin)
@@ -18,16 +23,19 @@ static size_t total_width(It begin, It end)
     return res;
 }
 
-static void spaces(std::ostream& out, int i)
+void spaces(std::ostream& out, int i)
 {
     for (int j = 0; j < i; j++)
         out << " ";
 }
 
+} // namespace
+
 void bash_renderer::render(const style& stl, std::ostream& out) const
 {
     struct winsize win;
     std::memset(&win, 0, sizeof win);
+    // NOLINTNEXTLINE(misc-include-cleaner)
     ::ioctl(2, TIOCGWINSZ, &win);
     const int twidth = win.ws_col - 2;
 

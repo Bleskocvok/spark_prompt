@@ -2,11 +2,14 @@
 
 // custom
 #include "../unicode.hpp"
+#include "style/color.hpp"
 
 // cpp
+#include <bits/basic_string.h>
+#include <cstddef>
+#include <ostream>
 #include <stdexcept>    // logic_error
 #include <string>       // ""s
-#include <string_view>  // ""sv
 
 
 using namespace std::literals;
@@ -44,8 +47,9 @@ size_t sep_len(sep s)
     throw std::logic_error{ "invalid separator" };
 }
 
+namespace {
 
-static void space_thing(std::ostream& out, color bg, color next_bg,
+void space_thing(std::ostream& out, color bg, color next_bg,
                         const std::string& symbol, bool reversed = false)
 {
     // TODO: add option to change color of “thick”
@@ -59,7 +63,7 @@ static void space_thing(std::ostream& out, color bg, color next_bg,
 }
 
 
-static void arrow_thing(std::ostream& out, color bg, color next_bg,
+void arrow_thing(std::ostream& out, color bg, color next_bg,
                         const std::string& symbol, bool reversed = false)
 {
     out << fg_color_str(bit3::reset)  // needed to cancel font effect
@@ -67,6 +71,8 @@ static void arrow_thing(std::ostream& out, color bg, color next_bg,
         << (reversed ? fg_color_str(next_bg) : fg_color_str(bg))
         << symbol;
 }
+
+} // namespace
 
 
 void render_sep(std::ostream& out, const segment& seg, color next_bg)
