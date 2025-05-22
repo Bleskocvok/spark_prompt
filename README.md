@@ -49,3 +49,4 @@ sudo bash ./system_install
 - Custom finctiondefinition
 - Bake option
 - More output types (powershell, zsh, ghci, …)
+- Proper tests
